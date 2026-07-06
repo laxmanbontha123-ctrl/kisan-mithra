@@ -5,6 +5,7 @@ import { prisma } from '../utils/prisma';
 export interface RegisterInput {
   fullName: string;
   email: string;
+  phone: string;
   password: string;
 }
 
@@ -21,10 +22,16 @@ export interface AuthService {
 
 export class AuthServiceImpl implements AuthService {
   public async register(input: RegisterInput): Promise<unknown> {
-    const existingUser = await prisma.user.findUnique({ where: { email: input.email } });
+    const existingUserByEmail = await prisma.user.findUnique({ where: { email: input.email } });
 
-    if (existingUser) {
-      throw new Error('Email already exists');
+    if (existingUserByEmail) {
+      throw new Error('Email already registered.');
+    }
+
+    const existingUserByPhone = await prisma.user.findUnique({ where: { phone: input.phone } });
+
+    if (existingUserByPhone) {
+      throw new Error('Phone already registered.');
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 12);
@@ -32,7 +39,10 @@ export class AuthServiceImpl implements AuthService {
       data: {
         fullName: input.fullName,
         email: input.email,
+        phone: input.phone,
         password: hashedPassword,
+        role: 'farmer',
+        language: 'en',
       },
     });
 
@@ -40,15 +50,15 @@ export class AuthServiceImpl implements AuthService {
 
     return {
       success: true,
-      message: 'User registered successfully.',
-      data: {
-        user: {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-        },
-        token,
+      message: 'Registration successful',
+      token,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        language: user.language,
       },
     };
   }
@@ -76,7 +86,9 @@ export class AuthServiceImpl implements AuthService {
           id: user.id,
           fullName: user.fullName,
           email: user.email,
+          phone: user.phone,
           role: user.role,
+          language: user.language,
         },
         token,
       },
@@ -97,7 +109,9 @@ export class AuthServiceImpl implements AuthService {
           id: user.id,
           fullName: user.fullName,
           email: user.email,
+          phone: user.phone,
           role: user.role,
+          language: user.language,
         },
       },
     };

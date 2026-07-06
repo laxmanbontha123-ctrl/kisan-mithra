@@ -4,12 +4,13 @@ import { authService } from '../services/auth.service';
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const normalizePhone = (phone: string): string => phone.replace(/\D/g, '');
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { fullName, email, password } = req.body ?? {};
+  const { fullName, email, phone, password } = req.body ?? {};
 
-  if (!isNonEmptyString(fullName) || !isNonEmptyString(email) || !isNonEmptyString(password)) {
-    res.status(400).json({ success: false, message: 'fullName, email, and password are required.' });
+  if (!isNonEmptyString(fullName) || !isNonEmptyString(email) || !isNonEmptyString(phone) || !isNonEmptyString(password)) {
+    res.status(400).json({ success: false, message: 'fullName, email, phone, and password are required.' });
     return;
   }
 
@@ -18,8 +19,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  if (password.length < 6) {
-    res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
+  const normalizedPhone = normalizePhone(phone);
+  if (normalizedPhone.length < 10) {
+    res.status(400).json({ success: false, message: 'Phone number must contain at least 10 digits.' });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
     return;
   }
 
@@ -27,13 +34,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const result = await authService.register({
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
+      phone: normalizedPhone,
       password,
     });
 
     res.status(201).json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Registration failed.';
-    const statusCode = message === 'Email already exists' ? 409 : 500;
+    const statusCode = message === 'Email already registered.' || message === 'Phone already registered.' ? 409 : 500;
     res.status(statusCode).json({ success: false, message });
   }
 };
