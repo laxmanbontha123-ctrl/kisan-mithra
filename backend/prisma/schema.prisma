@@ -17,4 +17,21 @@ model User {
   language  String   @default("en")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  crops     Crop[]
+}
+
+model Crop {
+  id                  String    @id @default(cuid())
+  cropName            String
+  cropVariety         String
+  landArea            Float
+  soilType            String
+  irrigationMethod    String
+  location            String
+  sowingDate          DateTime
+  expectedHarvestDate DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
