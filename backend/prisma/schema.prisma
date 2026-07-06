@@ -28,6 +28,8 @@ model Crop {
   soilType            String
   irrigationMethod    String
   location            String
+  latitude            Float
+  longitude           Float
   sowingDate          DateTime
   expectedHarvestDate DateTime?
   createdAt           DateTime  @default(now())

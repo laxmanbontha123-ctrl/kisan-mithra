@@ -4,6 +4,7 @@ import { cropService } from '../services/crop.service';
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 const isValidNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+const isValidCoordinate = (value: unknown, min: number, max: number): value is number => isValidNumber(value) && value >= min && value <= max;
 const toDate = (value: unknown): Date | undefined => {
   if (!value) {
     return undefined;
@@ -29,7 +30,7 @@ export const createCrop = async (req: AuthenticatedRequest, res: Response): Prom
     return;
   }
 
-  const { cropName, cropVariety, landArea, soilType, irrigationMethod, location, sowingDate, expectedHarvestDate } = req.body ?? {};
+  const { cropName, cropVariety, landArea, soilType, irrigationMethod, location, latitude, longitude, sowingDate, expectedHarvestDate } = req.body ?? {};
 
   if (!isNonEmptyString(cropName) || !isNonEmptyString(cropVariety) || !isNonEmptyString(soilType) || !isNonEmptyString(irrigationMethod) || !isNonEmptyString(location)) {
     res.status(400).json({ success: false, message: 'cropName, cropVariety, soilType, irrigationMethod, and location are required.' });
@@ -38,6 +39,16 @@ export const createCrop = async (req: AuthenticatedRequest, res: Response): Prom
 
   if (!isValidNumber(landArea)) {
     res.status(400).json({ success: false, message: 'landArea must be a valid number.' });
+    return;
+  }
+
+  if (!isValidCoordinate(latitude, -90, 90)) {
+    res.status(400).json({ success: false, message: 'latitude must be between -90 and 90.' });
+    return;
+  }
+
+  if (!isValidCoordinate(longitude, -180, 180)) {
+    res.status(400).json({ success: false, message: 'longitude must be between -180 and 180.' });
     return;
   }
 
@@ -61,6 +72,8 @@ export const createCrop = async (req: AuthenticatedRequest, res: Response): Prom
       soilType: soilType.trim(),
       irrigationMethod: irrigationMethod.trim(),
       location: location.trim(),
+      latitude,
+      longitude,
       sowingDate: parsedSowingDate,
       expectedHarvestDate: parsedExpectedHarvestDate ?? null,
     });
@@ -112,7 +125,7 @@ export const updateCrop = async (req: AuthenticatedRequest, res: Response): Prom
   }
 
   const cropId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const { cropName, cropVariety, landArea, soilType, irrigationMethod, location, sowingDate, expectedHarvestDate } = req.body ?? {};
+  const { cropName, cropVariety, landArea, soilType, irrigationMethod, location, latitude, longitude, sowingDate, expectedHarvestDate } = req.body ?? {};
   const updatePayload: Record<string, unknown> = {};
 
   if (isNonEmptyString(cropName)) {
@@ -137,6 +150,14 @@ export const updateCrop = async (req: AuthenticatedRequest, res: Response): Prom
 
   if (isNonEmptyString(location)) {
     updatePayload.location = location.trim();
+  }
+
+  if (isValidCoordinate(latitude, -90, 90)) {
+    updatePayload.latitude = latitude;
+  }
+
+  if (isValidCoordinate(longitude, -180, 180)) {
+    updatePayload.longitude = longitude;
   }
 
   if (sowingDate !== undefined) {

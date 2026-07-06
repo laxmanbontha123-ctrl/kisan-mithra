@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import cropRoutes from './routes/crop.routes';
+import weatherRoutes from './routes/weather.routes';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(morgan('dev'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/crops', cropRoutes);
+app.use('/api/weather', weatherRoutes);
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({

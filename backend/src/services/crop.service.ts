@@ -7,6 +7,8 @@ export interface CreateCropInput {
   soilType: string;
   irrigationMethod: string;
   location: string;
+  latitude: number;
+  longitude: number;
   sowingDate: Date;
   expectedHarvestDate?: Date | null;
 }
@@ -21,6 +23,8 @@ const cropSelection = {
   soilType: true,
   irrigationMethod: true,
   location: true,
+  latitude: true,
+  longitude: true,
   sowingDate: true,
   expectedHarvestDate: true,
   createdAt: true,
