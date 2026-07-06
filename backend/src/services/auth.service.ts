@@ -80,17 +80,15 @@ export class AuthServiceImpl implements AuthService {
 
     return {
       success: true,
-      message: 'Login successful.',
-      data: {
-        user: {
-          id: user.id,
-          fullName: user.fullName,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-          language: user.language,
-        },
-        token,
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        language: user.language,
       },
     };
   }
