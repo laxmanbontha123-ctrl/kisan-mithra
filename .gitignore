@@ -148,5 +148,13 @@ ai-server/**/*.pyc
 ai-server/uploads/*
 !ai-server/uploads/.gitkeep
 
+ai-server/datasets/plant-disease/*
+!ai-server/datasets/plant-disease/train/
+!ai-server/datasets/plant-disease/val/
+!ai-server/datasets/plant-disease/test/
+!ai-server/datasets/plant-disease/train/.gitkeep
+!ai-server/datasets/plant-disease/val/.gitkeep
+!ai-server/datasets/plant-disease/test/.gitkeep
+
 backend/uploads/*
 !backend/uploads/.gitkeep
