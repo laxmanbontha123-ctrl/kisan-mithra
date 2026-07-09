@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import cropRoutes from './routes/crop.routes';
 import weatherRoutes from './routes/weather.routes';
 import imageRoutes from './routes/image.routes';
+import diseaseRoutes from './routes/disease.routes';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/api/disease', diseaseRoutes);
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
