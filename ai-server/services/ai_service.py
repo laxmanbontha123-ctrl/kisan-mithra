@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-MODEL_PATH = "models/yolov8n.pt"
+MODEL_PATH = "models/object-detection/yolov8n.pt"
 
 print("Loading YOLO model...")
 model = YOLO(MODEL_PATH)
