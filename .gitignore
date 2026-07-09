@@ -147,3 +147,6 @@ ai-server/**/__pycache__/
 ai-server/**/*.pyc
 ai-server/uploads/*
 !ai-server/uploads/.gitkeep
+
+backend/uploads/*
+!backend/uploads/.gitkeep
