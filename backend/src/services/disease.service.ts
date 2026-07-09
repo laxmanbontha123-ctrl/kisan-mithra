@@ -67,7 +67,7 @@ export class DiseaseService {
 
       formData.append('file', blob, file.originalname);
 
-      const response = await fetch(`${aiServerUrl}/predict`, {
+      const response = await fetch(`${aiServerUrl}/predict/plant-disease`, {
         method: 'POST',
         body: formData,
       });
