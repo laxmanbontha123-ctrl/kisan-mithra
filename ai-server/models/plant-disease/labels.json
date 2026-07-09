@@ -1,0 +1,12 @@
+{
+  "0": "healthy",
+  "1": "leaf_blight",
+  "2": "leaf_spot",
+  "3": "rust",
+  "4": "powdery_mildew",
+  "5": "bacterial_blight",
+  "6": "brown_spot",
+  "7": "blast",
+  "8": "early_blight",
+  "9": "late_blight"
+}
