@@ -158,3 +158,13 @@ ai-server/datasets/plant-disease/*
 
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# Ignore real plant disease dataset images
+ai-server/datasets/plant-disease/_raw/
+ai-server/datasets/plant-disease/train/**
+ai-server/datasets/plant-disease/val/**
+ai-server/datasets/plant-disease/test/**
+!ai-server/datasets/plant-disease/train/
+!ai-server/datasets/plant-disease/val/
+!ai-server/datasets/plant-disease/test/
+!ai-server/datasets/plant-disease/**/.gitkeep
