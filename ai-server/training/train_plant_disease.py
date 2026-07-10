@@ -18,6 +18,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=16, help="Training batch size")
     parser.add_argument("--learning-rate", type=float, default=0.001, help="Learning rate")
+    parser.add_argument(
+        "--max-train-batches",
+        type=int,
+        default=0,
+        help="Maximum number of training batches per epoch; 0 disables the limit",
+    )
+    parser.add_argument(
+        "--max-val-batches",
+        type=int,
+        default=0,
+        help="Maximum number of validation batches; 0 disables the limit",
+    )
     return parser.parse_args()
 
 
@@ -67,11 +79,13 @@ def train_one_epoch(
     criterion: nn.Module,
     optimizer: torch.optim.Optimizer,
     device: torch.device,
+    max_batches: int = 0,
 ) -> float:
     model.train()
     running_loss = 0.0
+    total_batches = len(dataloader)
 
-    for inputs, labels in dataloader:
+    for batch_index, (inputs, labels) in enumerate(dataloader, start=1):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
@@ -83,16 +97,28 @@ def train_one_epoch(
 
         running_loss += loss.item() * inputs.size(0)
 
-    return running_loss / max(len(dataloader.dataset), 1)
+        if batch_index % 10 == 0 or batch_index == total_batches:
+            print(f"Train batch {batch_index}/{total_batches}, loss: {loss.item():.4f}")
+
+        if max_batches > 0 and batch_index >= max_batches:
+            break
+
+    processed_batches = min(total_batches, max_batches) if max_batches > 0 else total_batches
+    processed_examples = processed_batches * dataloader.batch_size if dataloader.batch_size else 0
+    if max_batches > 0:
+        processed_examples = min(processed_examples, len(dataloader.dataset))
+
+    return running_loss / max(processed_examples, 1)
 
 
 @torch.no_grad()
-def evaluate(model: nn.Module, dataloader: DataLoader, device: torch.device) -> float:
+def evaluate(model: nn.Module, dataloader: DataLoader, device: torch.device, max_batches: int = 0) -> float:
     model.eval()
     correct = 0
     total = 0
+    total_batches = len(dataloader)
 
-    for inputs, labels in dataloader:
+    for batch_index, (inputs, labels) in enumerate(dataloader, start=1):
         inputs = inputs.to(device)
         labels = labels.to(device)
 
@@ -100,6 +126,12 @@ def evaluate(model: nn.Module, dataloader: DataLoader, device: torch.device) -> 
         predictions = torch.argmax(outputs, dim=1)
         correct += (predictions == labels).sum().item()
         total += labels.size(0)
+
+        if batch_index % 10 == 0 or batch_index == total_batches:
+            print(f"Validation batch {batch_index}/{total_batches}")
+
+        if max_batches > 0 and batch_index >= max_batches:
+            break
 
     if total == 0:
         return 0.0
@@ -127,8 +159,15 @@ def main() -> None:
     print("Training started")
 
     for epoch in range(1, args.epochs + 1):
-        epoch_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_accuracy = evaluate(model, val_loader, device)
+        epoch_loss = train_one_epoch(
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            device,
+            max_batches=args.max_train_batches,
+        )
+        val_accuracy = evaluate(model, val_loader, device, max_batches=args.max_val_batches)
         print(f"Epoch {epoch}/{args.epochs} - loss: {epoch_loss:.4f}")
         print(f"Validation accuracy: {val_accuracy:.4f}")
 

@@ -168,3 +168,6 @@ ai-server/datasets/plant-disease/test/**
 !ai-server/datasets/plant-disease/val/
 !ai-server/datasets/plant-disease/test/
 !ai-server/datasets/plant-disease/**/.gitkeep
+
+# Ignore generated trained plant disease model
+ai-server/models/plant-disease/model.pt
