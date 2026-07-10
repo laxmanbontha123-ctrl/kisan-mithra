@@ -7,6 +7,8 @@ import torch
 from PIL import Image
 from torchvision import models, transforms
 
+from services.treatment_recommendation_service import get_treatment_recommendation
+
 BASE_DIR = Path(__file__).resolve().parents[1]
 PLANT_DISEASE_MODEL_PATH = BASE_DIR / "models" / "plant-disease" / "model.pt"
 LABELS_PATH = BASE_DIR / "models" / "plant-disease" / "labels.json"
@@ -113,11 +115,16 @@ def predict_plant_disease(image_path: str) -> dict[str, Any]:
             }
 
         top_prediction = predictions[0]
+        recommendation = get_treatment_recommendation(
+            label=str(top_prediction["label"]),
+            confidence=float(top_prediction["confidence"]),
+        )
 
         return {
             "modelReady": True,
             "prediction": top_prediction["label"],
             "confidence": top_prediction["confidence"],
+            "recommendation": recommendation,
             "allPredictions": predictions,
         }
     except Exception as error:
