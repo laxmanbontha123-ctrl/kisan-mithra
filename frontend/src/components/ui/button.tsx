@@ -8,6 +8,8 @@ type ButtonProps = {
   href?: string;
   variant?: "primary" | "secondary";
   className?: string;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 };
 
 export function Button({
@@ -15,6 +17,8 @@ export function Button({
   href,
   variant = "primary",
   className,
+  type = "button",
+  disabled = false,
 }: ButtonProps) {
   const baseClasses =
     "inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2";
@@ -33,5 +37,9 @@ export function Button({
     );
   }
 
-  return <button className={classes}>{children}</button>;
+  return (
+    <button type={type} disabled={disabled} className={classes}>
+      {children}
+    </button>
+  );
 }

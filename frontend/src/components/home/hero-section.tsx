@@ -27,6 +27,12 @@ export function HeroSection() {
             and access market insights in one simple experience.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button href="/disease-scan" className="min-w-[180px]">
+              <span className="flex items-center gap-2">
+                Scan Disease
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            </Button>
             <Button href="#features" className="min-w-[180px]">
               <span className="flex items-center gap-2">
                 Get Started
