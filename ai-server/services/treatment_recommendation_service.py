@@ -34,6 +34,70 @@ def _build_recommendation(
 
 def get_treatment_recommendation(label: str, confidence: float) -> dict[str, Any]:
     recommendations: dict[str, dict[str, Any]] = {
+        "Rice___Bacterial_blight": _build_recommendation(
+            crop="Rice",
+            disease="Bacterial blight",
+            confidence=confidence,
+            summary="Bacterial blight can spread quickly in wet fields and weaken rice leaves and tillers.",
+            immediate_actions=[
+                "Remove heavily infected leaves from affected plants.",
+                "Maintain proper field drainage to reduce excess moisture.",
+                "Consult local agriculture officer for chemical treatment if symptoms are severe.",
+            ],
+            prevention_tips=[
+                "Avoid excess nitrogen to limit overly lush growth.",
+                "Avoid dense planting so the canopy can dry faster.",
+                "Use disease-free seed or seedlings for the next planting cycle.",
+            ],
+        ),
+        "Rice___Blast": _build_recommendation(
+            crop="Rice",
+            disease="Blast",
+            confidence=confidence,
+            summary="Blast can attack rice leaves rapidly, especially when the crop stays humid and crowded.",
+            immediate_actions=[
+                "Remove heavily infected leaves from affected plants.",
+                "Maintain proper field drainage to reduce excess moisture.",
+                "Consult local agriculture officer for chemical treatment if symptoms are severe.",
+            ],
+            prevention_tips=[
+                "Avoid excess nitrogen to limit overly lush growth.",
+                "Avoid dense planting so the canopy can dry faster.",
+                "Use disease-free seed or seedlings for the next planting cycle.",
+            ],
+        ),
+        "Rice___Brown_spot": _build_recommendation(
+            crop="Rice",
+            disease="Brown spot",
+            confidence=confidence,
+            summary="Brown spot can reduce leaf health and plant vigor when fields are stressed or poorly managed.",
+            immediate_actions=[
+                "Remove heavily infected leaves from affected plants.",
+                "Maintain proper field drainage to reduce excess moisture.",
+                "Consult local agriculture officer for chemical treatment if symptoms are severe.",
+            ],
+            prevention_tips=[
+                "Avoid excess nitrogen to limit overly lush growth.",
+                "Avoid dense planting so the canopy can dry faster.",
+                "Use disease-free seed or seedlings for the next planting cycle.",
+            ],
+        ),
+        "Rice___Tungro": _build_recommendation(
+            crop="Rice",
+            disease="Tungro",
+            confidence=confidence,
+            summary="Tungro can stunt rice growth and weaken plants, so early field monitoring is important.",
+            immediate_actions=[
+                "Remove heavily infected leaves from affected plants.",
+                "Maintain proper field drainage to reduce excess moisture.",
+                "Consult local agriculture officer for chemical treatment if symptoms are severe.",
+            ],
+            prevention_tips=[
+                "Avoid excess nitrogen to limit overly lush growth.",
+                "Avoid dense planting so the canopy can dry faster.",
+                "Use disease-free seed or seedlings for the next planting cycle.",
+            ],
+        ),
         "Pepper__bell___Bacterial_spot": _build_recommendation(
             crop="Pepper (bell)",
             disease="Bacterial spot",
