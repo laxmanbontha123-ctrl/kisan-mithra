@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  fullName  String
-  email     String   @unique
-  phone     String   @unique
-  password  String
-  role      String   @default("farmer")
-  language  String   @default("en")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  crops     Crop[]
+  id           String        @id @default(cuid())
+  fullName     String
+  email        String        @unique
+  phone        String        @unique
+  password     String
+  role         String        @default("farmer")
+  language     String        @default("en")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  crops        Crop[]
+  diseaseScans DiseaseScan[]
 }
 
 model Crop {
@@ -36,4 +37,18 @@ model Crop {
   updatedAt           DateTime  @updatedAt
   userId              String
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DiseaseScan {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?
+  imageUrl   String?
+  prediction String
+  confidence Float
+  crop       String?
+  disease    String?
+  severity   String?
+  summary    String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
