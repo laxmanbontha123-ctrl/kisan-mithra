@@ -246,6 +246,9 @@ export default function DiseaseScanPage() {
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <h3 className="text-sm font-semibold text-slate-900">Top Predictions</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    These are AI probability matches across supported crops. Use the main prediction and confidence warning for guidance.
+                  </p>
                   {result.allPredictions && result.allPredictions.length > 0 ? (
                     <ul className="mt-3 space-y-2">
                       {result.allPredictions.slice(0, 5).map((prediction) => (
