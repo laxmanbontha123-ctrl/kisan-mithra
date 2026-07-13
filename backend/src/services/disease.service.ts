@@ -5,6 +5,7 @@ import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import type { Request } from 'express';
 import type { FileFilterCallback } from 'multer';
+import { prisma } from '../utils/prisma';
 
 const UPLOAD_DIR = path.resolve(__dirname, '..', '..', 'uploads');
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -13,7 +14,25 @@ const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png']);
 export interface DiseaseDetectionResult {
   success: true;
   message: string;
-  aiResponse: unknown;
+  aiResponse: PlantDiseaseAiResponse;
+  scanId?: string;
+  warning?: string;
+}
+
+interface DiseaseRecommendation {
+  crop?: string;
+  disease?: string;
+  severity?: string;
+  summary?: string;
+}
+
+interface PlantDiseaseAiResponse {
+  modelReady: boolean;
+  prediction?: string;
+  confidence?: number;
+  recommendation?: DiseaseRecommendation;
+  allPredictions?: Array<{ label: string; confidence: number }>;
+  message?: string;
 }
 
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -77,13 +96,35 @@ export class DiseaseService {
         throw new Error(`AI server request failed: ${response.status} ${errorText}`);
       }
 
-      const aiResponse = await response.json();
-
-      return {
+      const aiResponse = (await response.json()) as PlantDiseaseAiResponse;
+      const result: DiseaseDetectionResult = {
         success: true,
         message: 'Disease prediction completed',
         aiResponse,
       };
+
+      if (aiResponse.modelReady && typeof aiResponse.prediction === 'string' && typeof aiResponse.confidence === 'number') {
+        try {
+          const scan = await prisma.diseaseScan.create({
+            data: {
+              userId: null,
+              imageUrl: null,
+              prediction: aiResponse.prediction,
+              confidence: aiResponse.confidence,
+              crop: aiResponse.recommendation?.crop ?? null,
+              disease: aiResponse.recommendation?.disease ?? null,
+              severity: aiResponse.recommendation?.severity ?? null,
+              summary: aiResponse.recommendation?.summary ?? null,
+            },
+          });
+
+          result.scanId = scan.id;
+        } catch {
+          result.warning = 'Scan result could not be saved';
+        }
+      }
+
+      return result;
     } finally {
       await fsPromises.unlink(uploadedFilePath).catch(() => undefined);
     }
