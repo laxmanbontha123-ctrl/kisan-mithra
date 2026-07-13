@@ -165,6 +165,15 @@ export default function DiseaseScanPage() {
               </span>
             </div>
 
+            {result ? (
+              <Link
+                href="/disease-history"
+                className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100"
+              >
+                View Scan History
+              </Link>
+            ) : null}
+
             {!result ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-sm text-slate-500">
                 Submit an image to view prediction confidence, treatment summary, immediate actions, and prevention tips.
