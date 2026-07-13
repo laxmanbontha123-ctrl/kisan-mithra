@@ -24,6 +24,8 @@ export default function DiseaseScanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<DiseaseAiResponse | null>(null);
+  const showLowConfidenceWarning =
+    typeof result?.confidence === "number" && !Number.isNaN(result.confidence) && result.confidence < 0.6;
 
   const previewUrl = useMemo(() => {
     if (!selectedFile) {
@@ -177,6 +179,15 @@ export default function DiseaseScanPage() {
                     <p className="mt-2 text-base font-semibold text-emerald-700">{formatConfidence(result.confidence)}</p>
                   </div>
                 </div>
+
+                {showLowConfidenceWarning ? (
+                  <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm">
+                    <p className="inline-flex items-start gap-2 font-medium">
+                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                      Prediction confidence is low. Please retake the image in good lighting or consult a local agriculture officer before taking action.
+                    </p>
+                  </div>
+                ) : null}
 
                 {result.recommendation ? (
                   <div className="space-y-4">
