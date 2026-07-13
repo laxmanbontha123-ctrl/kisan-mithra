@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { detectDisease } from '../controllers/disease.controller';
+import { detectDisease, getDiseaseHistory } from '../controllers/disease.controller';
 import { createDiseaseUploadHandler } from '../services/disease.service';
 
 const router = Router();
@@ -16,5 +16,7 @@ router.post('/detect', (req, res, next) => {
     next();
   });
 }, detectDisease);
+
+router.get('/history', getDiseaseHistory);
 
 export default router;

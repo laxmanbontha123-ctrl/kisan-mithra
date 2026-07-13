@@ -19,6 +19,18 @@ export interface DiseaseDetectionResult {
   warning?: string;
 }
 
+export interface DiseaseScanHistoryItem {
+  id: string;
+  prediction: string;
+  confidence: number;
+  crop: string | null;
+  disease: string | null;
+  severity: string | null;
+  summary: string | null;
+  imageUrl: string | null;
+  createdAt: Date;
+}
+
 interface DiseaseRecommendation {
   crop?: string;
   disease?: string;
@@ -128,6 +140,26 @@ export class DiseaseService {
     } finally {
       await fsPromises.unlink(uploadedFilePath).catch(() => undefined);
     }
+  }
+
+  public async getDiseaseHistory(): Promise<DiseaseScanHistoryItem[]> {
+    return prisma.diseaseScan.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 20,
+      select: {
+        id: true,
+        prediction: true,
+        confidence: true,
+        crop: true,
+        disease: true,
+        severity: true,
+        summary: true,
+        imageUrl: true,
+        createdAt: true,
+      },
+    });
   }
 }
 

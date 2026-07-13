@@ -18,4 +18,17 @@ export const detectDisease = async (req: DetectDiseaseRequest, res: Response): P
   }
 };
 
-export default { detectDisease };
+export const getDiseaseHistory = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const scans = await diseaseService.getDiseaseHistory();
+    res.status(200).json({
+      success: true,
+      scans,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch disease scan history.';
+    res.status(500).json({ success: false, message });
+  }
+};
+
+export default { detectDisease, getDiseaseHistory };
