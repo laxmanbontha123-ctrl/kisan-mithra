@@ -19,6 +19,14 @@ function formatConfidence(value: number | undefined): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function formatDiseaseLabel(label: string | undefined): string {
+  if (!label) {
+    return "-";
+  }
+
+  return label.replace(/___/g, " - ").replace(/_/g, " ");
+}
+
 export default function DiseaseScanPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -172,7 +180,7 @@ export default function DiseaseScanPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Predicted Disease</p>
-                    <p className="mt-2 text-base font-semibold text-slate-900">{result.prediction || "-"}</p>
+                    <p className="mt-2 text-base font-semibold text-slate-900">{formatDiseaseLabel(result.prediction)}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Confidence</p>
@@ -245,7 +253,7 @@ export default function DiseaseScanPage() {
                           key={`${prediction.label}-${prediction.confidence}`}
                           className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
                         >
-                          <span className="font-medium text-slate-700">{prediction.label}</span>
+                          <span className="font-medium text-slate-700">{formatDiseaseLabel(prediction.label)}</span>
                           <span className="font-semibold text-emerald-700">{formatConfidence(prediction.confidence)}</span>
                         </li>
                       ))}
