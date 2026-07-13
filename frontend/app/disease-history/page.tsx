@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowLeft, CalendarClock, Leaf, LoaderCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, CalendarClock, Leaf, LoaderCircle, Trash2 } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
@@ -57,6 +57,8 @@ export default function DiseaseHistoryPage() {
   const [scans, setScans] = useState<DiseaseScanHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -94,6 +96,30 @@ export default function DiseaseHistoryPage() {
       isMounted = false;
     };
   }, []);
+
+  async function handleDelete(scanId: string) {
+    try {
+      setDeletingId(scanId);
+      setDeleteErrorMessage(null);
+
+      const response = await fetch(`http://localhost:5000/api/disease/history/${scanId}`, {
+        method: "DELETE",
+      });
+
+      const payload = (await response.json()) as { success: boolean; message?: string };
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || "Failed to delete scan history record.");
+      }
+
+      setScans((currentScans) => currentScans.filter((scan) => scan.id !== scanId));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete scan history record.";
+      setDeleteErrorMessage(message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_42%),linear-gradient(180deg,_#f8fffb_0%,_#eef7f2_100%)] text-slate-900">
@@ -151,6 +177,15 @@ export default function DiseaseHistoryPage() {
             </div>
           ) : (
             <div className="mt-6 grid gap-4">
+              {deleteErrorMessage ? (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  <p className="inline-flex items-start gap-2 font-medium">
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                    {deleteErrorMessage}
+                  </p>
+                </div>
+              ) : null}
+
               {scans.map((scan) => (
                 <article key={scan.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -158,8 +193,28 @@ export default function DiseaseHistoryPage() {
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Predicted Disease</p>
                       <h3 className="mt-2 text-lg font-semibold text-slate-900">{formatDiseaseLabel(scan.prediction)}</h3>
                     </div>
-                    <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                      {formatConfidence(scan.confidence)}
+                    <div className="flex items-center gap-2">
+                      <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                        {formatConfidence(scan.confidence)}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleDelete(scan.id)}
+                        disabled={deletingId === scan.id}
+                        className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {deletingId === scan.id ? (
+                          <span className="inline-flex items-center gap-2">
+                            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            Deleting...
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2">
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </span>
+                        )}
+                      </button>
                     </div>
                   </div>
 

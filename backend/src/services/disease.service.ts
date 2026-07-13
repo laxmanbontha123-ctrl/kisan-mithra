@@ -31,6 +31,11 @@ export interface DiseaseScanHistoryItem {
   createdAt: Date;
 }
 
+export interface DeleteDiseaseScanResult {
+  success: true;
+  message: string;
+}
+
 interface DiseaseRecommendation {
   crop?: string;
   disease?: string;
@@ -160,6 +165,32 @@ export class DiseaseService {
         createdAt: true,
       },
     });
+  }
+
+  public async deleteDiseaseHistoryRecord(id: string): Promise<DeleteDiseaseScanResult> {
+    const existingRecord = await prisma.diseaseScan.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existingRecord) {
+      throw new Error('Disease scan record not found.');
+    }
+
+    await prisma.diseaseScan.delete({
+      where: {
+        id,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Scan history record deleted',
+    };
   }
 }
 
