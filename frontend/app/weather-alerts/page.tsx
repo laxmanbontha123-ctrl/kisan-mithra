@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { AlertCircle, ArrowLeft, CloudSun, LoaderCircle, ShieldAlert, Wind } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertCircle, ArrowLeft, CloudSun, LoaderCircle, ShieldAlert } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
@@ -10,6 +10,8 @@ import { api, type WeatherAlertsResponse } from "@/src/services/api";
 
 const DEFAULT_LATITUDE = 17.3850;
 const DEFAULT_LONGITUDE = 78.4867;
+
+type LocationMode = "default" | "current";
 
 function formatValue(value: number | null, suffix = ""): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -31,41 +33,100 @@ export default function WeatherAlertsPage() {
   const [weatherData, setWeatherData] = useState<WeatherAlertsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [locationMode, setLocationMode] = useState<LocationMode>("default");
+  const [locationNotice, setLocationNotice] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const subtitle =
+    locationMode === "current"
+      ? "Live weather conditions and farming advisories for your current location."
+      : "Live weather conditions and farming advisories for Hyderabad using the default field coordinates.";
+
+  async function fetchWeatherAlerts(latitude: number, longitude: number, mode: LocationMode, notice: string | null = null) {
+    const response = await api.getWeatherAlerts(latitude, longitude);
+
+    if (!response.success) {
+      throw new Error("Failed to fetch weather alerts.");
+    }
+
+    if (isMountedRef.current) {
+      setWeatherData(response);
+      setLocationMode(mode);
+      setLocationNotice(notice);
+    }
+  }
+
+  async function loadDefaultWeather(notice: string | null = null) {
+    try {
+      await fetchWeatherAlerts(DEFAULT_LATITUDE, DEFAULT_LONGITUDE, "default", notice);
+      if (isMountedRef.current) {
+        setErrorMessage(null);
+      }
+    } catch (error) {
+      if (isMountedRef.current) {
+        const message = error instanceof Error ? error.message : "Failed to fetch weather alerts.";
+        setErrorMessage(message);
+      }
+    }
+  }
+
+  async function handleUseMyLocation() {
+    if (!navigator.geolocation) {
+      const notice = "Location access is unavailable in this browser. Showing Hyderabad default weather instead.";
+      setIsLoading(true);
+      setErrorMessage(notice);
+      await loadDefaultWeather(notice);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
+      });
+
+      await fetchWeatherAlerts(position.coords.latitude, position.coords.longitude, "current");
+      if (isMountedRef.current) {
+        setErrorMessage(null);
+      }
+    } catch (error) {
+      const fallbackNotice =
+        error instanceof GeolocationPositionError && error.code === error.PERMISSION_DENIED
+          ? "Location permission was denied. Showing Hyderabad default weather instead."
+          : "Unable to detect your location right now. Showing Hyderabad default weather instead.";
+
+      if (isMountedRef.current) {
+        setErrorMessage(fallbackNotice);
+      }
+
+      await loadDefaultWeather(fallbackNotice);
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }
 
   useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
 
     async function loadWeatherAlerts() {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
-
-        const response = await api.getWeatherAlerts(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
-
-        if (isMounted) {
-          if (!response.success) {
-            throw new Error("Failed to fetch weather alerts.");
-          }
-
-          setWeatherData(response);
-        }
-      } catch (error) {
-        if (isMounted) {
-          const message = error instanceof Error ? error.message : "Failed to fetch weather alerts.";
-          setErrorMessage(message);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      setIsLoading(true);
+      setErrorMessage(null);
+      await loadDefaultWeather();
+      if (isMountedRef.current) {
+        setIsLoading(false);
       }
     }
 
     void loadWeatherAlerts();
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -76,9 +137,7 @@ export default function WeatherAlertsPage() {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Weather Intelligence</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Weather Alerts</h1>
-            <p className="mt-3 max-w-2xl text-slate-600">
-              Live weather conditions and farming advisories for Hyderabad using the default field coordinates.
-            </p>
+            <p className="mt-3 max-w-2xl text-slate-600">{subtitle}</p>
           </div>
           <Link
             href="/"
@@ -94,18 +153,36 @@ export default function WeatherAlertsPage() {
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Current Conditions</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Weather and Advisory Summary</h2>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                  {locationMode === "current" ? "Your current location" : "Hyderabad default"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void handleUseMyLocation()}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <CloudSun className="h-4 w-4" />
+                  Use My Location
+                </button>
+              </div>
             </div>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
-              Hyderabad Default
-            </span>
           </div>
 
           {isLoading ? (
             <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-slate-500">
               <span className="inline-flex items-center gap-2 text-sm font-medium">
                 <LoaderCircle className="h-4 w-4 animate-spin text-emerald-600" />
-                Loading weather alerts...
+                Detecting location and loading weather alerts...
               </span>
+            </div>
+          ) : locationNotice ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="inline-flex items-start gap-2 font-medium">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                {locationNotice}
+              </p>
             </div>
           ) : errorMessage ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
