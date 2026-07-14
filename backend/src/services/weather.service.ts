@@ -29,6 +29,20 @@ export interface WeatherAlertsResponse {
   message?: string;
 }
 
+export interface ForecastHour {
+  time: string;
+  temperature: number | null;
+  humidity: number | null;
+  rainProbability: number | null;
+  windSpeed: number | null;
+}
+
+export interface WeatherForecastResponse {
+  success: true;
+  forecast: ForecastHour[];
+  advisory: string;
+}
+
 interface OpenMeteoResponse {
   current?: {
     temperature_2m?: number;
@@ -36,6 +50,13 @@ interface OpenMeteoResponse {
     wind_speed_10m?: number;
     weather_code?: number;
     precipitation_probability?: number;
+  };
+  hourly?: {
+    time?: string[];
+    temperature_2m?: Array<number | null>;
+    relative_humidity_2m?: Array<number | null>;
+    precipitation_probability?: Array<number | null>;
+    wind_speed_10m?: Array<number | null>;
   };
 }
 
@@ -161,6 +182,63 @@ export class WeatherService {
       },
       alerts,
       ...(alerts.length === 0 ? { message: 'No major weather alerts right now.' } : {}),
+    };
+  }
+
+  public async getWeatherForecast(latitude: number, longitude: number): Promise<WeatherForecastResponse> {
+    const response = await axios.get<OpenMeteoResponse>('https://api.open-meteo.com/v1/forecast', {
+      params: {
+        latitude,
+        longitude,
+        hourly: 'temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability',
+        forecast_hours: 24,
+        timezone: 'auto',
+      },
+      timeout: 10000,
+    });
+
+    const hourly = response.data.hourly;
+    const times = hourly?.time ?? [];
+    const temperatures = hourly?.temperature_2m ?? [];
+    const humidities = hourly?.relative_humidity_2m ?? [];
+    const rainProbabilities = hourly?.precipitation_probability ?? [];
+    const windSpeeds = hourly?.wind_speed_10m ?? [];
+
+    const forecast = times.slice(0, 24).map((time, index) => ({
+      time,
+      temperature: typeof temperatures[index] === 'number' ? temperatures[index] : null,
+      humidity: typeof humidities[index] === 'number' ? humidities[index] : null,
+      rainProbability: typeof rainProbabilities[index] === 'number' ? rainProbabilities[index] : null,
+      windSpeed: typeof windSpeeds[index] === 'number' ? windSpeeds[index] : null,
+    } satisfies ForecastHour));
+
+    const hasRainRisk = forecast.some((hour) => hour.rainProbability !== null && hour.rainProbability >= 70);
+    const hasHeatRisk = forecast.some((hour) => hour.temperature !== null && hour.temperature >= 38);
+    const hasWindRisk = forecast.some((hour) => hour.windSpeed !== null && hour.windSpeed >= 30);
+
+    let advisory = 'Weather looks suitable for normal farm activities.';
+    if (hasRainRisk || hasHeatRisk || hasWindRisk) {
+      const advisories: string[] = [];
+
+      if (hasRainRisk) {
+        advisories.push('Avoid pesticide spraying because heavy rain is likely in the next 24 hours.');
+      }
+
+      if (hasHeatRisk) {
+        advisories.push('Plan irrigation during cooler hours because high temperatures may stress crops.');
+      }
+
+      if (hasWindRisk) {
+        advisories.push('Avoid spraying because strong winds are expected in the next 24 hours.');
+      }
+
+      advisory = advisories.join(' ');
+    }
+
+    return {
+      success: true,
+      forecast,
+      advisory,
     };
   }
 }

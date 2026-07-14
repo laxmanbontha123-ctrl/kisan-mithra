@@ -68,4 +68,19 @@ export const getWeatherAlerts = async (req: Request, res: Response): Promise<voi
   }
 };
 
-export default { getCurrentWeather, getWeatherAlerts };
+export const getWeatherForecast = async (req: Request, res: Response): Promise<void> => {
+  const coordinates = parseCoordinates(req, res);
+  if (!coordinates) {
+    return;
+  }
+
+  try {
+    const result = await weatherService.getWeatherForecast(coordinates.latitude, coordinates.longitude);
+    res.status(200).json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to fetch weather forecast.';
+    res.status(502).json({ success: false, message });
+  }
+};
+
+export default { getCurrentWeather, getWeatherAlerts, getWeatherForecast };
