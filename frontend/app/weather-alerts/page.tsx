@@ -47,6 +47,20 @@ function formatForecastTime(value: string): string {
   }).format(date);
 }
 
+function getForecastRisks(hour: { rainProbability: number | null; temperature: number | null; windSpeed: number | null }) {
+  return [
+    ...(hour.rainProbability !== null && hour.rainProbability >= 70
+      ? [{ key: "rain", label: "Rain risk", className: "border-rose-200 bg-rose-50 text-rose-700" }]
+      : []),
+    ...(hour.temperature !== null && hour.temperature >= 38
+      ? [{ key: "heat", label: "Heat risk", className: "border-amber-200 bg-amber-50 text-amber-700" }]
+      : []),
+    ...(hour.windSpeed !== null && hour.windSpeed >= 30
+      ? [{ key: "wind", label: "Wind risk", className: "border-sky-200 bg-sky-50 text-sky-700" }]
+      : []),
+  ];
+}
+
 export default function WeatherAlertsPage() {
   const [weatherData, setWeatherData] = useState<WeatherAlertsResponse | null>(null);
   const [forecastData, setForecastData] = useState<WeatherForecastResponse | null>(null);
@@ -338,7 +352,14 @@ export default function WeatherAlertsPage() {
 
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {forecastData.forecast.map((hour) => (
-                        <article key={hour.time} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <article
+                          key={hour.time}
+                          className={`rounded-2xl border p-4 shadow-sm transition ${
+                            getForecastRisks(hour).length > 0
+                              ? "border-amber-200 bg-amber-50/70 shadow-[0_20px_50px_-35px_rgba(217,119,6,0.45)]"
+                              : "border-slate-200 bg-white"
+                          }`}
+                        >
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Time</p>
@@ -348,6 +369,19 @@ export default function WeatherAlertsPage() {
                               1h
                             </div>
                           </div>
+
+                          {getForecastRisks(hour).length > 0 ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {getForecastRisks(hour).map((risk) => (
+                                <span
+                                  key={risk.key}
+                                  className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${risk.className}`}
+                                >
+                                  {risk.label}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
 
                           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                             <div className="rounded-xl bg-slate-50 px-3 py-2">
