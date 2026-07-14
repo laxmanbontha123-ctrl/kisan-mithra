@@ -66,6 +66,7 @@ export default function DashboardPage() {
   const [weatherData, setWeatherData] = useState<WeatherAlertsResponse | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [weatherErrorMessage, setWeatherErrorMessage] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -118,6 +119,7 @@ export default function DashboardPage() {
 
       setHistoryLoading(false);
       setWeatherLoading(false);
+      setLastUpdatedAt(new Date().toISOString());
     }
 
     void loadDashboardData();
@@ -267,6 +269,10 @@ export default function DashboardPage() {
                   {formatDateTime(latestScan.createdAt)}
                 </div>
 
+                <div className="mt-3 text-xs font-medium text-slate-500">
+                  Last updated: <span className="text-slate-700">{formatDateTime(latestScan.createdAt)}</span>
+                </div>
+
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link href="/disease-history" className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50">
                     Open history
@@ -276,7 +282,19 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-sm text-slate-500">
-                No disease scans have been saved yet.
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium text-slate-700">No disease scans have been saved yet.</p>
+                    <p className="mt-1 max-w-md leading-6">Start with a leaf scan to see your latest prediction, confidence, and crop guidance here.</p>
+                  </div>
+                  <Link
+                    href="/disease-scan"
+                    className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    Scan Disease
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
             )}
           </article>
@@ -332,6 +350,10 @@ export default function DashboardPage() {
                   <p className="mt-2 leading-6">
                     {weatherData.alerts.length > 0 ? weatherData.message || "Weather alerts are active for this location." : "No major weather alerts right now."}
                   </p>
+                </div>
+
+                <div className="mt-3 text-xs font-medium text-slate-500">
+                  Last updated: <span className="text-slate-700">{lastUpdatedAt ? formatDateTime(lastUpdatedAt) : "Just now"}</span>
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-3">
