@@ -33,14 +33,14 @@ export function HeroSection() {
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Button>
-            <Button href="#features" className="min-w-[180px]">
+            <Button href="/weather-alerts" className="min-w-[180px]">
               <span className="flex items-center gap-2">
-                Get Started
+                Weather Alerts
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Button>
-            <Button href="#about" variant="secondary" className="min-w-[180px]">
-              Explore Features
+            <Button href="/disease-history" variant="secondary" className="min-w-[180px]">
+              Disease History
             </Button>
           </div>
           <div className="mt-8 flex flex-wrap gap-4 text-sm text-slate-600">
