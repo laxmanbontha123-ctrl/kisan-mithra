@@ -68,7 +68,7 @@ export default function DiseaseScanPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_42%),linear-gradient(180deg,_#f8fffb_0%,_#eef7f2_100%)] text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_42%),linear-gradient(180deg,#f8fffb_0%,#eef7f2_100%)] text-slate-900">
       <Navbar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
@@ -108,7 +108,7 @@ export default function DiseaseScanPage() {
                 />
                 <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                   <p className="inline-flex items-start gap-2 font-medium">
-                    <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                    <Info className="mt-0.5 h-4 w-4 shrink-0" />
                     Current AI model supports Pepper, Potato, Tomato, and Rice/Paddy leaves.
                   </p>
                 </div>
@@ -200,7 +200,7 @@ export default function DiseaseScanPage() {
                 {showLowConfidenceWarning ? (
                   <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm">
                     <p className="inline-flex items-start gap-2 font-medium">
-                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                       Prediction confidence is low. Please retake the image in good lighting or consult a local agriculture officer before taking action.
                     </p>
                   </div>

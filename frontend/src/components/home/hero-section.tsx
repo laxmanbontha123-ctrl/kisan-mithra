@@ -7,7 +7,7 @@ import { Button } from "@/src/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section id="home" className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_42%),linear-gradient(135deg,_#f8fff9_0%,_#eefbf3_100%)]">
+    <section id="home" className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.18),transparent_42%),linear-gradient(135deg,#f8fff9_0%,#eefbf3_100%)]">
       <div className="mx-auto grid max-w-7xl gap-16 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-28">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -27,19 +27,19 @@ export function HeroSection() {
             and access market insights in one simple experience.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button href="/disease-scan" className="min-w-[180px]">
+            <Button href="/disease-scan" className="min-w-45">
               <span className="flex items-center gap-2">
                 Scan Disease
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Button>
-            <Button href="/weather-alerts" className="min-w-[180px]">
+            <Button href="/weather-alerts" className="min-w-45">
               <span className="flex items-center gap-2">
                 Weather Alerts
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Button>
-            <Button href="/disease-history" variant="secondary" className="min-w-[180px]">
+            <Button href="/disease-history" variant="secondary" className="min-w-45">
               Disease History
             </Button>
           </div>
@@ -65,9 +65,9 @@ export function HeroSection() {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="relative"
         >
-          <div className="absolute inset-0 rounded-[2rem] bg-emerald-500/20 blur-3xl" />
-          <div className="relative rounded-[2rem] border border-emerald-100 bg-white p-6 shadow-[0_30px_90px_-30px_rgba(5,150,105,0.45)]">
-            <div className="rounded-[1.5rem] bg-gradient-to-br from-emerald-600 via-lime-500 to-emerald-900 p-6 text-white">
+          <div className="absolute inset-0 rounded-4xl bg-emerald-500/20 blur-3xl" />
+          <div className="relative rounded-4xl border border-emerald-100 bg-white p-6 shadow-[0_30px_90px_-30px_rgba(5,150,105,0.45)]">
+            <div className="rounded-3xl bg-linear-to-br from-emerald-600 via-lime-500 to-emerald-900 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-emerald-100">Today&apos;s farm outlook</p>
@@ -88,7 +88,7 @@ export function HeroSection() {
                 </div>
               </div>
             </div>
-            <div className="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+            <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Recommended action</p>

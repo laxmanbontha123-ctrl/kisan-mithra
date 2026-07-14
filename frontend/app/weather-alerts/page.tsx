@@ -176,7 +176,7 @@ export default function WeatherAlertsPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_42%),linear-gradient(180deg,_#f8fffb_0%,_#eef7f2_100%)] text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_42%),linear-gradient(180deg,#f8fffb_0%,#eef7f2_100%)] text-slate-900">
       <Navbar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
@@ -217,7 +217,7 @@ export default function WeatherAlertsPage() {
           </div>
 
           {isLoading ? (
-            <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-slate-500">
+            <div className="flex min-h-60 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-slate-500">
               <span className="inline-flex items-center gap-2 text-sm font-medium">
                 <LoaderCircle className="h-4 w-4 animate-spin text-emerald-600" />
                 Detecting location and loading weather alerts...
@@ -226,21 +226,21 @@ export default function WeatherAlertsPage() {
           ) : locationNotice ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               <p className="inline-flex items-start gap-2 font-medium">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 {locationNotice}
               </p>
             </div>
           ) : errorMessage ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               <p className="inline-flex items-start gap-2 font-medium">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 {errorMessage}
               </p>
             </div>
           ) : weatherData ? (
             <>
               <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-                <article className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-600 via-lime-500 to-emerald-900 p-6 text-white shadow-[0_30px_90px_-40px_rgba(5,150,105,0.55)]">
+                <article className="rounded-3xl border border-emerald-100 bg-linear-to-br from-emerald-600 via-lime-500 to-emerald-900 p-6 text-white shadow-[0_30px_90px_-40px_rgba(5,150,105,0.55)]">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-emerald-100">Weather snapshot</p>
@@ -330,7 +330,7 @@ export default function WeatherAlertsPage() {
                 </div>
 
                 {forecastLoading ? (
-                  <div className="mt-5 flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-slate-500">
+                  <div className="mt-5 flex min-h-45 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-slate-500">
                     <span className="inline-flex items-center gap-2 text-sm font-medium">
                       <LoaderCircle className="h-4 w-4 animate-spin text-emerald-600" />
                       Loading 24-hour forecast...
@@ -339,7 +339,7 @@ export default function WeatherAlertsPage() {
                 ) : forecastErrorMessage ? (
                   <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                     <p className="inline-flex items-start gap-2 font-medium">
-                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       {forecastErrorMessage}
                     </p>
                   </div>

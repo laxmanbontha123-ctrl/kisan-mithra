@@ -60,7 +60,7 @@ export function WorkingModulesSection() {
               transition={{ duration: 0.4, delay: index * 0.06 }}
               className="group rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg"
             >
-              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${module.accent} text-white shadow-sm transition group-hover:scale-110`}>
+              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br ${module.accent} text-white shadow-sm transition group-hover:scale-110`}>
                 <Icon className="h-6 w-6" />
               </div>
 
@@ -89,20 +89,20 @@ export function WorkingModulesSection() {
       <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Link
           href="/disease-scan"
-          className="inline-flex min-w-[180px] items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
+          className="inline-flex min-w-45 items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
         >
           Scan Disease
           <ArrowRight className="h-4 w-4" />
         </Link>
         <Link
           href="/disease-history"
-          className="inline-flex min-w-[180px] items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+          className="inline-flex min-w-45 items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
         >
           View History
         </Link>
         <Link
           href="/weather-alerts"
-          className="inline-flex min-w-[180px] items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+          className="inline-flex min-w-45 items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
         >
           Weather Alerts
         </Link>
