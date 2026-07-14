@@ -45,6 +45,20 @@ export type WeatherAlertsResponse = {
   message?: string;
 };
 
+export type WeatherForecastHour = {
+  time: string;
+  temperature: number | null;
+  humidity: number | null;
+  rainProbability: number | null;
+  windSpeed: number | null;
+};
+
+export type WeatherForecastResponse = {
+  success: boolean;
+  forecast: WeatherForecastHour[];
+  advisory: string;
+};
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -111,6 +125,11 @@ export const api = {
 
   getWeatherAlerts: async (lat: number, lon: number): Promise<WeatherAlertsResponse> => {
     const response = await api.get<WeatherAlertsResponse>(`/api/weather/alerts?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`);
+    return response;
+  },
+
+  getWeatherForecast: async (lat: number, lon: number): Promise<WeatherForecastResponse> => {
+    const response = await api.get<WeatherForecastResponse>(`/api/weather/forecast?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`);
     return response;
   },
 };
