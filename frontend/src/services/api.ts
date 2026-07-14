@@ -25,6 +25,26 @@ export type DiseaseDetectResponse = {
   aiResponse?: DiseasePrediction;
 };
 
+export type WeatherAlert = {
+  type: "rain" | "wind" | "heat" | "disease-risk";
+  severity: "high" | "medium";
+  title: string;
+  message: string;
+};
+
+export type WeatherAlertsResponse = {
+  success: boolean;
+  weather: {
+    temperature: number | null;
+    humidity: number | null;
+    windSpeed: number | null;
+    condition: string;
+    rainProbability: number | null;
+  };
+  alerts: WeatherAlert[];
+  message?: string;
+};
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -87,5 +107,10 @@ export const api = {
     }
 
     return payload;
+  },
+
+  getWeatherAlerts: async (lat: number, lon: number): Promise<WeatherAlertsResponse> => {
+    const response = await api.get<WeatherAlertsResponse>(`/api/weather/alerts?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`);
+    return response;
   },
 };

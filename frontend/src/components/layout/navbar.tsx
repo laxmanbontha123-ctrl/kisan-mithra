@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Leaf, Menu } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
@@ -6,6 +7,7 @@ const links = [
   { label: "Home", href: "#home" },
   { label: "Disease Scan", href: "/disease-scan" },
   { label: "Disease History", href: "/disease-history" },
+  { label: "Weather Alerts", href: "/weather-alerts" },
   { label: "Features", href: "#features" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
@@ -27,9 +29,15 @@ export function Navbar() {
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
           {links.map((link) => (
-            <a key={link.label} href={link.href} className="transition hover:text-emerald-600">
-              {link.label}
-            </a>
+            link.href.startsWith("/") ? (
+              <Link key={link.label} href={link.href} className="transition hover:text-emerald-600">
+                {link.label}
+              </Link>
+            ) : (
+              <a key={link.label} href={link.href} className="transition hover:text-emerald-600">
+                {link.label}
+              </a>
+            )
           ))}
         </nav>
 
