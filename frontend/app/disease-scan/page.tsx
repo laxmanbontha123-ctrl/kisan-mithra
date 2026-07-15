@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, LoaderCircle, ScanSearch, ShieldCheck, Info } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
@@ -283,3 +284,4 @@ export default function DiseaseScanPage() {
     </div>
   );
 }
+

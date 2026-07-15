@@ -8,14 +8,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/src/components/ui/button";
 
 const links = [
-  { label: "Home", href: "/" },
+  { label: "Home", href: "/home" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Disease Scan", href: "/disease-scan" },
   { label: "Disease History", href: "/disease-history" },
   { label: "Weather Alerts", href: "/weather-alerts" },
-  { label: "Features", href: "/#features" },
-  { label: "About", href: "/#about" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Features", href: "/home#features" },
+  { label: "About", href: "/home#about" },
+  { label: "Contact", href: "/home#contact" },
 ];
 
 type StoredUser = {
@@ -108,3 +108,4 @@ export function Navbar() {
     </header>
   );
 }
+

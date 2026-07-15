@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertCircle, ArrowLeft, CalendarClock, Leaf, LoaderCircle, Trash2 } from "lucide-react";
 
@@ -54,6 +55,7 @@ function formatDateTime(value: string): string {
 }
 
 export default function DiseaseHistoryPage() {
+  const router = useRouter();
   const [scans, setScans] = useState<DiseaseScanHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export default function DiseaseHistoryPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [router]);
 
   async function handleDelete(scanId: string) {
     try {
@@ -252,3 +254,4 @@ export default function DiseaseHistoryPage() {
     </div>
   );
 }
+

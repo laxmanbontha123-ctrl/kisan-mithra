@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, CloudSun, LoaderCircle, ShieldAlert } from "lucide-react";
 
@@ -62,6 +63,15 @@ function getForecastRisks(hour: { rainProbability: number | null; temperature: n
 }
 
 export default function WeatherAlertsPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = window.localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
   const [weatherData, setWeatherData] = useState<WeatherAlertsResponse | null>(null);
   const [forecastData, setForecastData] = useState<WeatherForecastResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -254,7 +264,7 @@ export default function WeatherAlertsPage() {
                   <div className="mt-8 grid gap-4 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
                       <p className="text-sm text-emerald-100">Temperature</p>
-                      <p className="mt-1 text-xl font-semibold">{formatValue(weatherData.weather.temperature, "°C")}</p>
+                      <p className="mt-1 text-xl font-semibold">{formatValue(weatherData.weather.temperature, "Â°C")}</p>
                     </div>
                     <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
                       <p className="text-sm text-emerald-100">Humidity</p>
@@ -386,7 +396,7 @@ export default function WeatherAlertsPage() {
                           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                             <div className="rounded-xl bg-slate-50 px-3 py-2">
                               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Temp</p>
-                              <p className="mt-1 font-semibold text-slate-900">{formatValue(hour.temperature, "°C")}</p>
+                              <p className="mt-1 font-semibold text-slate-900">{formatValue(hour.temperature, "Â°C")}</p>
                             </div>
                             <div className="rounded-xl bg-slate-50 px-3 py-2">
                               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Humidity</p>
