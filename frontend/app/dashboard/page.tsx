@@ -1,12 +1,13 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertCircle, ArrowRight, CalendarClock, CloudSun, History, LoaderCircle, ScanSearch, ShieldCheck, Wind } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
-import { api, type WeatherAlertsResponse } from "@/src/services/api";
+import { api, type AuthUser, type WeatherAlertsResponse } from "@/src/services/api";
 
 type DiseaseScanHistoryItem = {
   id: string;
@@ -58,6 +59,10 @@ function formatWeatherValue(value: number | null, suffix = ""): string {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [profile, setProfile] = useState<AuthUser | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
   const [scans, setScans] = useState<DiseaseScanHistoryItem[]>([]);
   const [latestScan, setLatestScan] = useState<DiseaseScanHistoryItem | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -67,6 +72,46 @@ export default function DashboardPage() {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [weatherErrorMessage, setWeatherErrorMessage] = useState<string | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = window.localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadProfile() {
+      setProfileLoading(true);
+
+      try {
+        const result = await api.getProfile();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setProfile(result.user);
+        window.localStorage.setItem("user", JSON.stringify(result.user));
+      } catch {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        router.push("/login");
+      } finally {
+        if (isMounted) {
+          setProfileLoading(false);
+        }
+      }
+    }
+
+    void loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   useEffect(() => {
     let isMounted = true;
@@ -136,9 +181,13 @@ export default function DashboardPage() {
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Farm Operations</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Dashboard</h1>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              {profile ? `Welcome, ${profile.fullName}` : "Dashboard"}
+            </h1>
             <p className="mt-3 max-w-2xl text-slate-600">
-              A quick view of the live modules already working in Kisan Mithra, with recent disease scans and current weather advisories.
+              {profileLoading
+                ? "Loading your farmer profile..."
+                : "Your personalized farm control center with recent disease scans, weather advisories, and smart farming actions."}
             </p>
           </div>
           <Link
@@ -371,3 +420,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
