@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowRight, CalendarClock, CloudSun, History, LoaderCircle, ScanSearch, ShieldCheck, Wind } from "lucide-react";
+import { AlertCircle, ArrowRight, CalendarClock, CloudSun, History, LoaderCircle, ScanSearch, ShieldCheck, Sprout, Wind } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
-import { api, type AuthUser, type WeatherAlertsResponse } from "@/src/services/api";
+import { api, type AuthUser, type Crop, type WeatherAlertsResponse } from "@/src/services/api";
 
 type DiseaseScanHistoryItem = {
   id: string;
@@ -72,6 +72,11 @@ export default function DashboardPage() {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [weatherErrorMessage, setWeatherErrorMessage] = useState<string | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+
+  const [farmRecords, setFarmRecords] = useState<Crop[]>([]);
+  const [farmLoading, setFarmLoading] = useState(true);
+  const [farmErrorMessage, setFarmErrorMessage] = useState<string | null>(null);
+  const primaryFarm = farmRecords[0] ?? null;
 
   useEffect(() => {
     const token = window.localStorage.getItem("token");
@@ -266,6 +271,70 @@ export default function DashboardPage() {
           </Link>
         </section>
 
+        <section className="mt-8 rounded-3xl border border-emerald-100 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">
+                Farm profile
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                {primaryFarm ? primaryFarm.cropName : "Set up your farm"}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                {primaryFarm
+                  ? "Your saved farm details will power future fertilizer, soil, weather, and market recommendations."
+                  : "Add your first farm profile to personalize recommendations for your crop and location."}
+              </p>
+            </div>
+
+            <Link
+              href="/farm-setup"
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            >
+              Farm Setup
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {farmLoading ? (
+            <div className="mt-6 flex min-h-28 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-slate-500">
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin text-emerald-600" />
+              Loading farm profile...
+            </div>
+          ) : farmErrorMessage ? (
+            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              {farmErrorMessage}
+            </div>
+          ) : primaryFarm ? (
+            <div className="mt-6 grid gap-4 md:grid-cols-5">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Crop</p>
+                <p className="mt-2 text-sm font-bold text-slate-900">{primaryFarm.cropName}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Land</p>
+                <p className="mt-2 text-sm font-bold text-slate-900">{primaryFarm.landArea} acres</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Soil</p>
+                <p className="mt-2 text-sm font-bold text-slate-900">{primaryFarm.soilType}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Irrigation</p>
+                <p className="mt-2 text-sm font-bold text-slate-900">{primaryFarm.irrigationMethod}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Location</p>
+                <p className="mt-2 text-sm font-bold text-slate-900">{primaryFarm.location}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-sm text-slate-500">
+              No farm profile found. Create one from Farm Setup.
+            </div>
+          )}
+        </section>
+
         <section className="mt-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <article className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
             <div className="flex items-start justify-between gap-4">
@@ -420,4 +489,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
 
