@@ -80,6 +80,48 @@ export type ProfileResponse = {
   user: AuthUser;
 };
 
+export type Crop = {
+  id: string;
+  cropName: string;
+  cropVariety: string;
+  landArea: number;
+  soilType: string;
+  irrigationMethod: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  sowingDate: string;
+  expectedHarvestDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+};
+
+export type CreateCropInput = {
+  cropName: string;
+  cropVariety: string;
+  landArea: number;
+  soilType: string;
+  irrigationMethod: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  sowingDate: string;
+  expectedHarvestDate?: string | null;
+};
+
+export type CropResponse = {
+  success: boolean;
+  message: string;
+  data: Crop;
+};
+
+export type CropsResponse = {
+  success: boolean;
+  message: string;
+  data: Crop[];
+};
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -94,6 +136,14 @@ function getAuthToken(): string | null {
   }
 
   return null;
+}
+
+function getJsonHeaders(): HeadersInit {
+  const token = getAuthToken();
+
+  return token
+    ? { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
+    : { "Content-Type": "application/json" };
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -149,6 +199,39 @@ export const api = {
 
   getProfile: async (): Promise<ProfileResponse> => {
     return api.get<ProfileResponse>("/api/auth/profile");
+  },
+
+  getCrops: async (): Promise<CropsResponse> => {
+    return api.get<CropsResponse>("/api/crops");
+  },
+
+  createCrop: async (input: CreateCropInput): Promise<CropResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/crops`, {
+      method: "POST",
+      headers: getJsonHeaders(),
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<CropResponse>(response);
+  },
+
+  updateCrop: async (cropId: string, input: Partial<CreateCropInput>): Promise<CropResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/crops/${cropId}`, {
+      method: "PUT",
+      headers: getJsonHeaders(),
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<CropResponse>(response);
+  },
+
+  deleteCrop: async (cropId: string): Promise<{ success: boolean; message: string; data: null }> => {
+    const response = await fetch(`${API_BASE_URL}/api/crops/${cropId}`, {
+      method: "DELETE",
+      headers: getJsonHeaders(),
+    });
+
+    return parseJsonResponse<{ success: boolean; message: string; data: null }>(response);
   },
 
   detectDisease: async (imageFile: File): Promise<DiseaseDetectResponse> => {
