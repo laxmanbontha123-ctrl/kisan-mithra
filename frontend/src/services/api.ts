@@ -7,6 +7,12 @@ type DiseaseRecommendation = {
   summary: string;
   immediateActions: string[];
   preventionTips: string[];
+  treatmentCategory?: string;
+  suggestedProducts?: string[];
+  dosageGuide?: string[];
+  applicationTiming?: string[];
+  safetyPrecautions?: string[];
+  organicOptions?: string[];
   advisoryNote: string;
 };
 
@@ -122,6 +128,48 @@ export type CropsResponse = {
   data: Crop[];
 };
 
+export type AgriProductRecommendation = {
+  id: string;
+  brandName: string;
+  productName: string;
+  category: string;
+  crop: string;
+  targetProblem: string;
+  activeIngredient: string | null;
+  formulation: string | null;
+  dosageNote: string;
+  safetyNote: string;
+  organic: boolean;
+  isVerified: boolean;
+  shops: Array<{
+    shopProductId: string;
+    approximatePrice: number | null;
+    priceUnit: string | null;
+    availabilityStatus: string;
+    lastVerifiedAt: string | null;
+    shop: {
+      id: string;
+      name: string;
+      phone: string | null;
+      address: string;
+      district: string;
+      state: string;
+      latitude: number;
+      longitude: number;
+      isVerified: boolean;
+      mapsUrl: string;
+    };
+  }>;
+};
+
+export type AgriProductRecommendationsResponse = {
+  success: boolean;
+  message: string;
+  data: AgriProductRecommendation[];
+  disclaimer: string;
+};
+
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -232,6 +280,16 @@ export const api = {
     });
 
     return parseJsonResponse<{ success: boolean; message: string; data: null }>(response);
+  },
+
+
+  getAgriProductRecommendations: async (
+    crop: string,
+    problem: string,
+  ): Promise<AgriProductRecommendationsResponse> => {
+    return api.get<AgriProductRecommendationsResponse>(
+      `/api/agri-products/recommendations?crop=${encodeURIComponent(crop)}&problem=${encodeURIComponent(problem)}`,
+    );
   },
 
   detectDisease: async (imageFile: File): Promise<DiseaseDetectResponse> => {

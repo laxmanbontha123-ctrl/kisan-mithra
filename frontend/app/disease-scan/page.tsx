@@ -9,7 +9,7 @@ import { AlertCircle, ArrowLeft, LoaderCircle, ScanSearch, ShieldCheck, Info } f
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
 import { Button } from "@/src/components/ui/button";
-import { api } from "@/src/services/api";
+import { api, type AgriProductRecommendation } from "@/src/services/api";
 import type { DiseaseAiResponse } from "@/src/types";
 
 function formatConfidence(value: number | undefined): string {
@@ -33,6 +33,10 @@ export default function DiseaseScanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<DiseaseAiResponse | null>(null);
+  const [agriProducts, setAgriProducts] = useState<AgriProductRecommendation[]>([]);
+  const [agriDisclaimer, setAgriDisclaimer] = useState("");
+  const [agriLoading, setAgriLoading] = useState(false);
+  const [agriErrorMessage, setAgriErrorMessage] = useState<string | null>(null);
   const showLowConfidenceWarning =
     typeof result?.confidence === "number" && !Number.isNaN(result.confidence) && result.confidence < 0.6;
 
@@ -53,6 +57,10 @@ export default function DiseaseScanPage() {
     setIsLoading(true);
     setErrorMessage(null);
     setResult(null);
+    setAgriProducts([]);
+    setAgriDisclaimer("");
+    setAgriErrorMessage(null);
+    setAgriLoading(false);
 
     try {
       const response = await api.detectDisease(selectedFile);
@@ -60,6 +68,27 @@ export default function DiseaseScanPage() {
         throw new Error(response.message || "Disease scan failed.");
       }
       setResult(response.aiResponse);
+
+      const crop = response.aiResponse.recommendation?.crop;
+      const problem = response.aiResponse.recommendation?.disease;
+
+      if (crop && problem && problem.toLowerCase() !== "healthy") {
+        setAgriLoading(true);
+
+        try {
+          const productResponse = await api.getAgriProductRecommendations(crop, problem);
+          setAgriProducts(productResponse.data);
+          setAgriDisclaimer(productResponse.disclaimer || productResponse.message);
+        } catch (productError) {
+          setAgriErrorMessage(
+            productError instanceof Error
+              ? productError.message
+              : "Unable to load local product suggestions.",
+          );
+        } finally {
+          setAgriLoading(false);
+        }
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to scan image.";
       setErrorMessage(message);
@@ -243,6 +272,224 @@ export default function DiseaseScanPage() {
                           ))}
                         </ul>
                       </div>
+                    </div>
+
+                    {result.recommendation.treatmentCategory ||
+                    result.recommendation.suggestedProducts?.length ||
+                    result.recommendation.dosageGuide?.length ||
+                    result.recommendation.applicationTiming?.length ||
+                    result.recommendation.safetyPrecautions?.length ||
+                    result.recommendation.organicOptions?.length ? (
+                      <div className="rounded-2xl border border-lime-200 bg-lime-50/70 p-4">
+                        <h3 className="text-sm font-semibold text-lime-950">Treatment & Dosage Guide</h3>
+
+                        {result.recommendation.treatmentCategory ? (
+                          <p className="mt-2 rounded-xl bg-white px-3 py-2 text-sm font-medium text-lime-900">
+                            {result.recommendation.treatmentCategory}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                          {result.recommendation.suggestedProducts?.length ? (
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Suggested product category</p>
+                              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                                {result.recommendation.suggestedProducts.map((item) => (
+                                  <li key={item} className="flex items-start gap-2">
+                                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-lime-500" />
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+
+                          {result.recommendation.dosageGuide?.length ? (
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Dosage guide</p>
+                              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                                {result.recommendation.dosageGuide.map((item) => (
+                                  <li key={item} className="flex items-start gap-2">
+                                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+
+                          {result.recommendation.applicationTiming?.length ? (
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Application timing</p>
+                              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                                {result.recommendation.applicationTiming.map((item) => (
+                                  <li key={item} className="flex items-start gap-2">
+                                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-sky-500" />
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+
+                          {result.recommendation.organicOptions?.length ? (
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Organic / non-chemical options</p>
+                              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                                {result.recommendation.organicOptions.map((item) => (
+                                  <li key={item} className="flex items-start gap-2">
+                                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        {result.recommendation.safetyPrecautions?.length ? (
+                          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                            <p className="text-xs font-bold uppercase tracking-wider text-amber-800">Safety precautions</p>
+                            <ul className="mt-3 space-y-2 text-sm text-amber-950">
+                              {result.recommendation.safetyPrecautions.map((item) => (
+                                <li key={item} className="flex items-start gap-2">
+                                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-sm font-semibold text-orange-950">
+                            Local Product & Shop Suggestions
+                          </h3>
+                          <p className="mt-1 text-xs leading-5 text-orange-900">
+                            Demo local product data is shown for testing. Verify brand, price, dosage, and availability locally before use.
+                          </p>
+                        </div>
+                        <Link
+                          href="/farm-setup"
+                          className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-700"
+                        >
+                          Use farm location
+                        </Link>
+                      </div>
+
+                      {agriLoading ? (
+                        <div className="mt-4 flex items-center rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
+                          <LoaderCircle className="mr-2 h-4 w-4 animate-spin text-orange-600" />
+                          Loading local product suggestions...
+                        </div>
+                      ) : agriErrorMessage ? (
+                        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                          {agriErrorMessage}
+                        </div>
+                      ) : agriProducts.length > 0 ? (
+                        <div className="mt-4 space-y-4">
+                          {agriProducts.map((product) => (
+                            <article key={product.id} className="rounded-2xl border border-orange-100 bg-white p-4">
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-xs font-bold uppercase tracking-wider text-orange-600">
+                                    {product.category}
+                                  </p>
+                                  <h4 className="mt-1 text-base font-bold text-slate-900">
+                                    {product.brandName} - {product.productName}
+                                  </h4>
+                                  <p className="mt-1 text-sm text-slate-600">
+                                    Target: {product.crop} / {product.targetProblem}
+                                  </p>
+                                </div>
+                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                  {product.isVerified ? "Verified" : "Demo / Unverified"}
+                                </span>
+                              </div>
+
+                              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">
+                                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Active ingredient
+                                  </p>
+                                  <p className="mt-1 font-medium text-slate-800">
+                                    {product.activeIngredient || "Verify locally"}
+                                  </p>
+                                </div>
+                                <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm">
+                                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                    Formulation
+                                  </p>
+                                  <p className="mt-1 font-medium text-slate-800">
+                                    {product.formulation || "Verify locally"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                <p className="font-semibold">Dosage note</p>
+                                <p className="mt-1 leading-6">{product.dosageNote}</p>
+                              </div>
+
+                              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                                <p className="font-semibold">Safety note</p>
+                                <p className="mt-1 leading-6">{product.safetyNote}</p>
+                              </div>
+
+                              {product.shops.length > 0 ? (
+                                <div className="mt-4 space-y-3">
+                                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Available / nearby shops
+                                  </p>
+
+                                  {product.shops.slice(0, 3).map((shopItem) => (
+                                    <div
+                                      key={shopItem.shopProductId}
+                                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                                    >
+                                      <div className="flex flex-wrap items-start justify-between gap-3">
+                                        <div>
+                                          <p className="font-semibold text-slate-900">{shopItem.shop.name}</p>
+                                          <p className="mt-1 text-sm text-slate-600">{shopItem.shop.address}</p>
+                                          <p className="mt-1 text-xs text-slate-500">
+                                            Price:{" "}
+                                            {shopItem.approximatePrice
+                                              ? `₹${shopItem.approximatePrice} ${shopItem.priceUnit || ""}`
+                                              : shopItem.priceUnit || "Verify at shop"}
+                                          </p>
+                                        </div>
+
+                                        <a
+                                          href={shopItem.shop.mapsUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                                        >
+                                          Open Maps
+                                        </a>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </article>
+                          ))}
+
+                          {agriDisclaimer ? (
+                            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                              {agriDisclaimer}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="mt-4 rounded-2xl border border-dashed border-orange-200 bg-white px-4 py-3 text-sm text-slate-600">
+                          No verified local products found yet for this crop and problem.
+                        </div>
+                      )}
                     </div>
 
                     <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">

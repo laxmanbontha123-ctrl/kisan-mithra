@@ -52,3 +52,60 @@ model DiseaseScan {
   createdAt  DateTime @default(now())
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
+
+model AgriShop {
+  id           String            @id @default(cuid())
+  name         String
+  phone        String?
+  address      String
+  district     String
+  state        String
+  latitude     Float
+  longitude    Float
+  isVerified   Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  shopProducts AgriShopProduct[]
+
+  @@index([district, state])
+}
+
+model AgriProduct {
+  id               String            @id @default(cuid())
+  brandName        String
+  productName      String
+  category         String
+  crop             String
+  targetProblem    String
+  activeIngredient String?
+  formulation      String?
+  dosageNote       String
+  safetyNote       String
+  organic          Boolean           @default(false)
+  isVerified       Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  shopProducts     AgriShopProduct[]
+
+  @@index([crop, targetProblem])
+  @@index([category])
+}
+
+model AgriShopProduct {
+  id                 String      @id @default(cuid())
+  shopId             String
+  productId          String
+  approximatePrice   Float?
+  priceUnit          String?
+  availabilityStatus String      @default("unknown")
+  lastVerifiedAt     DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  shop               AgriShop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  product            AgriProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, productId])
+  @@index([shopId])
+  @@index([productId])
+}
+

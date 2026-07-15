@@ -11,6 +11,12 @@ export interface DiseaseRecommendation {
   summary: string;
   immediateActions: string[];
   preventionTips: string[];
+  treatmentCategory?: string;
+  suggestedProducts?: string[];
+  dosageGuide?: string[];
+  applicationTiming?: string[];
+  safetyPrecautions?: string[];
+  organicOptions?: string[];
   advisoryNote: string;
 }
 

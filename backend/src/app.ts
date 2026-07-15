@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from 'express';
+﻿import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -8,6 +8,7 @@ import cropRoutes from './routes/crop.routes';
 import weatherRoutes from './routes/weather.routes';
 import imageRoutes from './routes/image.routes';
 import diseaseRoutes from './routes/disease.routes';
+import agriProductRoutes from './routes/agri-product.routes';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/crops', cropRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/disease', diseaseRoutes);
+app.use('/api/agri-products', agriProductRoutes);
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
@@ -40,3 +42,4 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 export default app;
+

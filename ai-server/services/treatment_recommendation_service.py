@@ -12,6 +12,108 @@ def _severity_from_confidence(confidence: float, base: str = "medium") -> str:
     return "low"
 
 
+def _treatment_category(crop: str, disease: str) -> str:
+    disease_lower = disease.lower()
+
+    if "healthy" in disease_lower:
+        return "No chemical treatment needed"
+
+    if "bacterial" in disease_lower or "blight" in disease_lower:
+        return "Disease management with sanitation, drainage, and locally approved crop protection products"
+
+    if "virus" in disease_lower or "tungro" in disease_lower:
+        return "Vector control, infected plant removal, and field hygiene"
+
+    if "mite" in disease_lower:
+        return "Pest pressure management and plant stress reduction"
+
+    return "Integrated disease management"
+
+
+def _suggested_products(crop: str, disease: str) -> list[str]:
+    disease_lower = disease.lower()
+
+    if "healthy" in disease_lower:
+        return [
+            "No pesticide or fungicide is recommended from this scan.",
+            "Continue balanced nutrition and routine monitoring.",
+        ]
+
+    if "virus" in disease_lower or "tungro" in disease_lower:
+        return [
+            "Use only locally approved vector-management products after confirming pest presence.",
+            "Ask a local agriculture officer or licensed input dealer for crop-specific registered products.",
+        ]
+
+    if "mite" in disease_lower:
+        return [
+            "Use only locally approved mite-management products if mites are confirmed on leaf undersides.",
+            "Avoid unnecessary spraying when pest pressure is low.",
+        ]
+
+    return [
+        "Use only locally approved disease-management products registered for this crop and disease.",
+        "Carry this AI result to a local agriculture officer or licensed input dealer before buying chemicals.",
+    ]
+
+
+def _dosage_guide(crop: str, disease: str) -> list[str]:
+    return [
+        "Do not apply chemical dosage based only on AI prediction.",
+        "Follow the product label dosage exactly for your crop, disease, formulation strength, and land area.",
+        "Measure land area correctly before mixing spray solution.",
+        "For low-confidence predictions, retake the image or confirm with an agriculture officer first.",
+    ]
+
+
+def _application_timing(crop: str, disease: str) -> list[str]:
+    disease_lower = disease.lower()
+
+    if "healthy" in disease_lower:
+        return [
+            "No treatment spray is needed now.",
+            "Continue scouting every 3-4 days during risky weather.",
+        ]
+
+    return [
+        "Apply any approved treatment only after diagnosis confirmation.",
+        "Avoid spraying during strong wind, heavy rain, or extreme heat.",
+        "Prefer early morning or late evening application when advised on the product label.",
+    ]
+
+
+def _safety_precautions() -> list[str]:
+    return [
+        "Wear gloves, mask, long sleeves, and eye protection while mixing or spraying.",
+        "Keep children, animals, and food items away from treated areas.",
+        "Do not mix products unless the label or agriculture officer clearly allows it.",
+        "Follow waiting period and re-entry instructions on the product label.",
+    ]
+
+
+def _organic_options(crop: str, disease: str) -> list[str]:
+    disease_lower = disease.lower()
+
+    if "healthy" in disease_lower:
+        return [
+            "Use compost or farmyard manure only as part of a balanced nutrition plan.",
+            "Maintain clean field borders and remove diseased debris.",
+        ]
+
+    if "virus" in disease_lower or "tungro" in disease_lower:
+        return [
+            "Remove severely infected plants where recommended.",
+            "Use yellow sticky traps or physical barriers for vector monitoring where suitable.",
+            "Keep weeds and volunteer host plants under control.",
+        ]
+
+    return [
+        "Remove infected leaves and crop debris safely.",
+        "Improve spacing, drainage, and airflow.",
+        "Use locally recommended bio-control products only after expert advice.",
+    ]
+
+
 def _build_recommendation(
     crop: str,
     disease: str,
@@ -28,7 +130,13 @@ def _build_recommendation(
         "summary": summary,
         "immediateActions": immediate_actions,
         "preventionTips": prevention_tips,
-        "advisoryNote": "Consult local agriculture officer for chemical treatment and region-specific guidance.",
+        "treatmentCategory": _treatment_category(crop, disease),
+        "suggestedProducts": _suggested_products(crop, disease),
+        "dosageGuide": _dosage_guide(crop, disease),
+        "applicationTiming": _application_timing(crop, disease),
+        "safetyPrecautions": _safety_precautions(),
+        "organicOptions": _organic_options(crop, disease),
+        "advisoryNote": "AI guidance is only a support tool. Confirm diagnosis and chemical treatment with a local agriculture officer or licensed input dealer.",
     }
 
 
