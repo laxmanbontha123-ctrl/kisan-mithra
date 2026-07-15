@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+﻿const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
 
 type DiseaseRecommendation = {
   crop: string;
@@ -59,6 +59,27 @@ export type WeatherForecastResponse = {
   advisory: string;
 };
 
+export type AuthUser = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: string;
+  language: string;
+};
+
+export type AuthResponse = {
+  success: boolean;
+  message: string;
+  token: string;
+  user: AuthUser;
+};
+
+export type ProfileResponse = {
+  success: boolean;
+  user: AuthUser;
+};
+
 function getAuthToken(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -75,6 +96,16 @@ function getAuthToken(): string | null {
   return null;
 }
 
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const payload = (await response.json()) as T & { message?: string };
+
+  if (!response.ok) {
+    throw new Error(payload?.message || `Request failed with status ${response.status}`);
+  }
+
+  return payload as T;
+}
+
 export const api = {
   get: async <T>(url: string): Promise<T> => {
     const token = getAuthToken();
@@ -85,11 +116,39 @@ export const api = {
       headers,
     });
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
+    return parseJsonResponse<T>(response);
+  },
 
-    return (await response.json()) as T;
+  register: async (input: {
+    fullName: string;
+    email: string;
+    phone: string;
+    password: string;
+  }): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<AuthResponse>(response);
+  },
+
+  login: async (input: {
+    email: string;
+    password: string;
+  }): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<AuthResponse>(response);
+  },
+
+  getProfile: async (): Promise<ProfileResponse> => {
+    return api.get<ProfileResponse>("/api/auth/profile");
   },
 
   detectDisease: async (imageFile: File): Promise<DiseaseDetectResponse> => {
@@ -105,31 +164,18 @@ export const api = {
       body: formData,
     });
 
-    let payload: DiseaseDetectResponse | null = null;
-    try {
-      payload = (await response.json()) as DiseaseDetectResponse;
-    } catch {
-      payload = null;
-    }
-
-    if (!response.ok) {
-      throw new Error(payload?.message || `Disease scan failed with status ${response.status}`);
-    }
-
-    if (!payload) {
-      throw new Error("Invalid response from disease detection service");
-    }
-
-    return payload;
+    return parseJsonResponse<DiseaseDetectResponse>(response);
   },
 
   getWeatherAlerts: async (lat: number, lon: number): Promise<WeatherAlertsResponse> => {
-    const response = await api.get<WeatherAlertsResponse>(`/api/weather/alerts?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`);
-    return response;
+    return api.get<WeatherAlertsResponse>(
+      `/api/weather/alerts?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`,
+    );
   },
 
   getWeatherForecast: async (lat: number, lon: number): Promise<WeatherForecastResponse> => {
-    const response = await api.get<WeatherForecastResponse>(`/api/weather/forecast?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`);
-    return response;
+    return api.get<WeatherForecastResponse>(
+      `/api/weather/forecast?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`,
+    );
   },
 };
