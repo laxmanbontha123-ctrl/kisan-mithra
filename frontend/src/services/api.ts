@@ -171,6 +171,27 @@ export type AgriProductRecommendationsResponse = {
   disclaimer: string;
 };
 
+export type NearbyAgriShop = {
+  id: string;
+  name: string;
+  address: string;
+  phone: string | null;
+  rating: number | null;
+  businessStatus: string | null;
+  latitude: number;
+  longitude: number;
+  mapsUrl: string;
+};
+
+export type NearbyAgriShopsResponse = {
+  success: boolean;
+  configured: boolean;
+  message: string;
+  data: NearbyAgriShop[];
+  disclaimer?: string;
+};
+
+
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") {
@@ -284,6 +305,16 @@ export const api = {
     return parseJsonResponse<{ success: boolean; message: string; data: null }>(response);
   },
 
+
+
+  getNearbyAgriShops: async (
+    lat: number,
+    lon: number,
+  ): Promise<NearbyAgriShopsResponse> => {
+    return api.get<NearbyAgriShopsResponse>(
+      `/api/agri-shops/nearby?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lon))}`,
+    );
+  },
 
   getAgriProductRecommendations: async (
     crop: string,

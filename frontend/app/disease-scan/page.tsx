@@ -4,12 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowLeft, LoaderCircle, ScanSearch, ShieldCheck, Info } from "lucide-react";
+import { AlertCircle, ArrowLeft, LoaderCircle, MapPin, Navigation, ScanSearch, ShieldCheck, Info } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
 import { Button } from "@/src/components/ui/button";
-import { api, type AgriProductRecommendation } from "@/src/services/api";
+import { api, type AgriProductRecommendation, type NearbyAgriShop } from "@/src/services/api";
 import type { DiseaseAiResponse } from "@/src/types";
 
 function formatConfidence(value: number | undefined): string {
@@ -37,6 +37,11 @@ export default function DiseaseScanPage() {
   const [agriDisclaimer, setAgriDisclaimer] = useState("");
   const [agriLoading, setAgriLoading] = useState(false);
   const [agriErrorMessage, setAgriErrorMessage] = useState<string | null>(null);
+  const [nearbyShops, setNearbyShops] = useState<NearbyAgriShop[]>([]);
+  const [nearbyShopsMessage, setNearbyShopsMessage] = useState("");
+  const [nearbyShopsDisclaimer, setNearbyShopsDisclaimer] = useState("");
+  const [nearbyShopsLoading, setNearbyShopsLoading] = useState(false);
+  const [nearbyShopsError, setNearbyShopsError] = useState<string | null>(null);
   const showLowConfidenceWarning =
     typeof result?.confidence === "number" && !Number.isNaN(result.confidence) && result.confidence < 0.6;
 
@@ -61,6 +66,11 @@ export default function DiseaseScanPage() {
     setAgriDisclaimer("");
     setAgriErrorMessage(null);
     setAgriLoading(false);
+    setNearbyShops([]);
+    setNearbyShopsMessage("");
+    setNearbyShopsDisclaimer("");
+    setNearbyShopsError(null);
+    setNearbyShopsLoading(false);
 
     try {
       const response = await api.detectDisease(selectedFile);
@@ -95,6 +105,44 @@ export default function DiseaseScanPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function loadNearbyAgriShops() {
+    setNearbyShopsError(null);
+    setNearbyShopsMessage("");
+    setNearbyShopsDisclaimer("");
+
+    if (!navigator.geolocation) {
+      setNearbyShopsError("Location access is not supported on this device.");
+      return;
+    }
+
+    setNearbyShopsLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const response = await api.getNearbyAgriShops(
+            position.coords.latitude,
+            position.coords.longitude,
+          );
+
+          setNearbyShops(response.data);
+          setNearbyShopsMessage(response.message);
+          setNearbyShopsDisclaimer(response.disclaimer || "");
+        } catch (error) {
+          setNearbyShopsError(
+            error instanceof Error ? error.message : "Unable to load nearby agri shops.",
+          );
+        } finally {
+          setNearbyShopsLoading(false);
+        }
+      },
+      () => {
+        setNearbyShopsLoading(false);
+        setNearbyShopsError("Location permission is required to find nearby agri shops.");
+      },
+    );
   }
 
   return (
@@ -379,6 +427,80 @@ export default function DiseaseScanPage() {
                         >
                           Use farm location
                         </Link>
+                      </div>
+
+                      <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-sky-950">
+                              Find exact nearby fertilizer / pesticide shops
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-sky-800">
+                              Uses your current location. Real shops need Google Places API key in backend .env.
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => void loadNearbyAgriShops()}
+                            disabled={nearbyShopsLoading}
+                            className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          >
+                            {nearbyShopsLoading ? (
+                              <LoaderCircle className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Navigation className="h-4 w-4" />
+                            )}
+                            {nearbyShopsLoading ? "Finding shops..." : "Find nearby shops"}
+                          </button>
+                        </div>
+
+                        {nearbyShopsError ? (
+                          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                            {nearbyShopsError}
+                          </div>
+                        ) : null}
+
+                        {nearbyShopsMessage ? (
+                          <div className="mt-3 rounded-xl border border-sky-100 bg-white px-3 py-2 text-sm text-sky-900">
+                            {nearbyShopsMessage}
+                          </div>
+                        ) : null}
+
+                        {nearbyShops.length > 0 ? (
+                          <div className="mt-3 space-y-3">
+                            {nearbyShops.map((shop) => (
+                              <div key={shop.id} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div>
+                                    <p className="inline-flex items-center gap-2 font-semibold text-slate-900">
+                                      <MapPin className="h-4 w-4 text-sky-600" />
+                                      {shop.name}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-600">{shop.address}</p>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                      {shop.phone ? `Phone: ${shop.phone}` : "Phone not available"}
+                                      {shop.rating ? ` • Rating: ${shop.rating}` : ""}
+                                    </p>
+                                  </div>
+
+                                  <a
+                                    href={shop.mapsUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                                  >
+                                    Open Maps
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {nearbyShopsDisclaimer ? (
+                          <p className="mt-3 text-xs leading-5 text-sky-900">{nearbyShopsDisclaimer}</p>
+                        ) : null}
                       </div>
 
                       {agriLoading ? (

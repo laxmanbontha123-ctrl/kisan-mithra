@@ -9,6 +9,7 @@ import weatherRoutes from './routes/weather.routes';
 import imageRoutes from './routes/image.routes';
 import diseaseRoutes from './routes/disease.routes';
 import agriProductRoutes from './routes/agri-product.routes';
+import agriShopRoutes from './routes/agri-shop.routes';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/disease', diseaseRoutes);
 app.use('/api/agri-products', agriProductRoutes);
+app.use('/api/agri-shops', agriShopRoutes);
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
@@ -42,4 +44,5 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 export default app;
+
 

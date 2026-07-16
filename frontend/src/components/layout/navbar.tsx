@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Leaf, Menu } from "lucide-react";
+import { Leaf, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/src/components/ui/button";
@@ -28,8 +28,11 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [userName, setUserName] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
+    setIsMenuOpen(false);
+
     const storedUser = window.localStorage.getItem("user");
 
     if (!storedUser) {
@@ -49,11 +52,12 @@ export function Navbar() {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("user");
     setUserName("");
+    setIsMenuOpen(false);
     router.push("/login");
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-white/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
@@ -99,15 +103,54 @@ export function Navbar() {
 
           <button
             type="button"
-            aria-label="Open menu"
-            className="rounded-full border border-emerald-200 p-2 text-slate-700 md:hidden"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setIsMenuOpen((current) => !current)}
+            className="rounded-full border border-emerald-200 p-2 text-slate-700 transition hover:bg-emerald-50 md:hidden"
           >
-            <Menu className="h-5 w-5" />
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
+
+      {isMenuOpen ? (
+        <div className="border-t border-emerald-100 bg-white px-6 py-4 shadow-xl shadow-emerald-900/5 md:hidden">
+          <nav className="mx-auto flex max-w-7xl flex-col gap-2">
+            {links.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            <div className="mt-3 border-t border-slate-100 pt-4">
+              {userName ? (
+                <div className="space-y-3">
+                  <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                    Hi, {userName.split(" ")[0]}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full rounded-2xl border border-red-200 px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="block rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-emerald-700"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
+          </nav>
+        </div>
+      ) : null}
     </header>
   );
 }
-
-
