@@ -14,10 +14,29 @@ export interface LoginInput {
   password: string;
 }
 
+export interface RequestPhoneOtpInput {
+  phone: string;
+}
+
+export interface VerifyPhoneOtpInput {
+  phone: string;
+  code: string;
+}
+
 export interface AuthService {
   register: (input: RegisterInput) => Promise<unknown>;
   login: (input: LoginInput) => Promise<unknown>;
+  requestPhoneOtp: (input: RequestPhoneOtpInput) => Promise<unknown>;
+  verifyPhoneOtp: (input: VerifyPhoneOtpInput) => Promise<unknown>;
   getProfile: (userId: string) => Promise<unknown>;
+}
+
+function generateOtp(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function minutesFromNow(minutes: number): Date {
+  return new Date(Date.now() + minutes * 60 * 1000);
 }
 
 export class AuthServiceImpl implements AuthService {
@@ -59,6 +78,8 @@ export class AuthServiceImpl implements AuthService {
         phone: user.phone,
         role: user.role,
         language: user.language,
+        emailVerified: user.emailVerified,
+        phoneVerified: user.phoneVerified,
       },
     };
   }
@@ -76,6 +97,11 @@ export class AuthServiceImpl implements AuthService {
       throw new Error('Invalid email or password');
     }
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
     const token = signToken({ id: user.id, email: user.email, role: user.role });
 
     return {
@@ -89,6 +115,101 @@ export class AuthServiceImpl implements AuthService {
         phone: user.phone,
         role: user.role,
         language: user.language,
+        emailVerified: user.emailVerified,
+        phoneVerified: user.phoneVerified,
+      },
+    };
+  }
+
+  public async requestPhoneOtp(input: RequestPhoneOtpInput): Promise<unknown> {
+    const user = await prisma.user.findUnique({ where: { phone: input.phone } });
+
+    if (!user) {
+      throw new Error('No account found with this phone number. Please register first.');
+    }
+
+    const code = generateOtp();
+    const codeHash = await bcrypt.hash(code, 12);
+
+    await prisma.authOtp.create({
+      data: {
+        identifier: input.phone,
+        type: 'phone_login',
+        codeHash,
+        expiresAt: minutesFromNow(5),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'OTP generated successfully. In production this will be sent by SMS.',
+      expiresInMinutes: 5,
+      devOtp: code,
+    };
+  }
+
+  public async verifyPhoneOtp(input: VerifyPhoneOtpInput): Promise<unknown> {
+    const otp = await prisma.authOtp.findFirst({
+      where: {
+        identifier: input.phone,
+        type: 'phone_login',
+        consumedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!otp) {
+      throw new Error('OTP expired or not found. Please request a new OTP.');
+    }
+
+    if (otp.attempts >= 5) {
+      throw new Error('Too many wrong attempts. Please request a new OTP.');
+    }
+
+    const isValid = await bcrypt.compare(input.code, otp.codeHash);
+
+    if (!isValid) {
+      await prisma.authOtp.update({
+        where: { id: otp.id },
+        data: { attempts: { increment: 1 } },
+      });
+
+      throw new Error('Invalid OTP.');
+    }
+
+    const user = await prisma.user.update({
+      where: { phone: input.phone },
+      data: {
+        phoneVerified: true,
+        lastLoginAt: new Date(),
+      },
+    });
+
+    await prisma.authOtp.update({
+      where: { id: otp.id },
+      data: { consumedAt: new Date() },
+    });
+
+    const token = signToken({ id: user.id, email: user.email, role: user.role });
+
+    return {
+      success: true,
+      message: 'Phone OTP login successful',
+      token,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        language: user.language,
+        emailVerified: user.emailVerified,
+        phoneVerified: user.phoneVerified,
       },
     };
   }
@@ -109,6 +230,9 @@ export class AuthServiceImpl implements AuthService {
         phone: user.phone,
         role: user.role,
         language: user.language,
+        emailVerified: user.emailVerified,
+        phoneVerified: user.phoneVerified,
+        lastLoginAt: user.lastLoginAt,
       },
     };
   }

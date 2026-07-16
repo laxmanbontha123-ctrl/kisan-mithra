@@ -73,6 +73,60 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const requestPhoneOtp = async (req: Request, res: Response): Promise<void> => {
+  const { phone } = req.body ?? {};
+
+  if (!isNonEmptyString(phone)) {
+    res.status(400).json({ success: false, message: 'phone is required.' });
+    return;
+  }
+
+  const normalizedPhone = normalizePhone(phone);
+  if (normalizedPhone.length < 10) {
+    res.status(400).json({ success: false, message: 'Phone number must contain at least 10 digits.' });
+    return;
+  }
+
+  try {
+    const result = await authService.requestPhoneOtp({ phone: normalizedPhone });
+    res.status(200).json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to generate OTP.';
+    const statusCode = message.includes('No account found') ? 404 : 500;
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
+export const verifyPhoneOtp = async (req: Request, res: Response): Promise<void> => {
+  const { phone, code } = req.body ?? {};
+
+  if (!isNonEmptyString(phone) || !isNonEmptyString(code)) {
+    res.status(400).json({ success: false, message: 'phone and code are required.' });
+    return;
+  }
+
+  const normalizedPhone = normalizePhone(phone);
+  const normalizedCode = code.replace(/\D/g, '');
+
+  if (normalizedPhone.length < 10 || normalizedCode.length !== 6) {
+    res.status(400).json({ success: false, message: 'Valid phone and 6-digit OTP are required.' });
+    return;
+  }
+
+  try {
+    const result = await authService.verifyPhoneOtp({
+      phone: normalizedPhone,
+      code: normalizedCode,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'OTP verification failed.';
+    const statusCode = message.includes('Invalid OTP') || message.includes('expired') || message.includes('Too many') ? 401 : 500;
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
 export const profile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   if (!req.user) {
     res.status(401).json({ success: false, message: 'Authentication required.' });
@@ -88,4 +142,4 @@ export const profile = async (req: AuthenticatedRequest, res: Response): Promise
   }
 };
 
-export default { register, login, profile };
+export default { register, login, requestPhoneOtp, verifyPhoneOtp, profile };
