@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { signToken } from '../utils/jwt';
 import { prisma } from '../utils/prisma';
+import { smsService } from './sms.service';
 
 export interface RegisterInput {
   fullName: string;
@@ -140,11 +141,20 @@ export class AuthServiceImpl implements AuthService {
       },
     });
 
+    await smsService.sendOtp({
+      phone: input.phone,
+      otp: code,
+    });
+
+    const isSmsConfigured = Boolean(process.env.MSG91_AUTH_KEY && process.env.MSG91_OTP_TEMPLATE_ID);
+
     return {
       success: true,
-      message: 'OTP generated successfully. In production this will be sent by SMS.',
+      message: isSmsConfigured
+        ? 'OTP sent successfully to your mobile number.'
+        : 'OTP generated successfully. SMS provider is not configured yet.',
       expiresInMinutes: 5,
-      devOtp: code,
+      devOtp: process.env.NODE_ENV === 'production' ? undefined : code,
     };
   }
 
