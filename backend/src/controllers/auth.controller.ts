@@ -73,6 +73,61 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const requestEmailVerification = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body ?? {};
+
+  if (!isNonEmptyString(email)) {
+    res.status(400).json({ success: false, message: 'email is required.' });
+    return;
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!isValidEmail(normalizedEmail)) {
+    res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
+    return;
+  }
+
+  try {
+    const result = await authService.requestEmailVerification({ email: normalizedEmail });
+    res.status(200).json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to generate email verification OTP.';
+    const statusCode = message.includes('No account found') ? 404 : 500;
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
+export const verifyEmailOtp = async (req: Request, res: Response): Promise<void> => {
+  const { email, code } = req.body ?? {};
+
+  if (!isNonEmptyString(email) || !isNonEmptyString(code)) {
+    res.status(400).json({ success: false, message: 'email and code are required.' });
+    return;
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedCode = code.replace(/\D/g, '');
+
+  if (!isValidEmail(normalizedEmail) || normalizedCode.length !== 6) {
+    res.status(400).json({ success: false, message: 'Valid email and 6-digit OTP are required.' });
+    return;
+  }
+
+  try {
+    const result = await authService.verifyEmailOtp({
+      email: normalizedEmail,
+      code: normalizedCode,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Email OTP verification failed.';
+    const statusCode = message.includes('Invalid') || message.includes('expired') || message.includes('Too many') ? 401 : 500;
+    res.status(statusCode).json({ success: false, message });
+  }
+};
+
 export const requestPhoneOtp = async (req: Request, res: Response): Promise<void> => {
   const { phone } = req.body ?? {};
 
@@ -142,4 +197,4 @@ export const profile = async (req: AuthenticatedRequest, res: Response): Promise
   }
 };
 
-export default { register, login, requestPhoneOtp, verifyPhoneOtp, profile };
+export default { register, login, requestEmailVerification, verifyEmailOtp, requestPhoneOtp, verifyPhoneOtp, profile };
