@@ -96,6 +96,13 @@ export type PhoneOtpResponse = {
   devOtp?: string;
 };
 
+export type EmailOtpResponse = {
+  success: boolean;
+  message: string;
+  expiresInMinutes: number;
+  devOtp?: string;
+};
+
 export type Crop = {
   id: string;
   cropName: string;
@@ -270,6 +277,26 @@ export const api = {
     password: string;
   }): Promise<AuthResponse> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<AuthResponse>(response);
+  },
+
+  requestEmailVerification: async (input: { email: string }): Promise<EmailOtpResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/email/request-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<EmailOtpResponse>(response);
+  },
+
+  verifyEmailOtp: async (input: { email: string; code: string }): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/email/verify-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
