@@ -77,6 +77,8 @@ model AgriProduct {
   category         String
   crop             String
   targetProblem    String
+  targetType       String            @default("disease")
+  productPurpose   String            @default("Disease management")
   activeIngredient String?
   formulation      String?
   dosageNote       String

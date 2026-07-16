@@ -405,6 +405,15 @@ export default function DiseaseScanPage() {
                                   <p className="mt-1 text-sm text-slate-600">
                                     Target: {product.crop} / {product.targetProblem}
                                   </p>
+
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                                      Problem Type: {product.targetType}
+                                    </span>
+                                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                      Purpose: {product.productPurpose}
+                                    </span>
+                                  </div>
                                 </div>
                                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                                   {product.isVerified ? "Verified" : "Demo / Unverified"}

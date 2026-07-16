@@ -54,6 +54,8 @@ export class AgriProductService {
         category: product.category,
         crop: product.crop,
         targetProblem: product.targetProblem,
+        targetType: product.targetType,
+        productPurpose: product.productPurpose,
         activeIngredient: product.activeIngredient,
         formulation: product.formulation,
         dosageNote: product.dosageNote,

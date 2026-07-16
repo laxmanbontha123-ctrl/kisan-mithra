@@ -135,6 +135,8 @@ export type AgriProductRecommendation = {
   category: string;
   crop: string;
   targetProblem: string;
+  targetType: string;
+  productPurpose: string;
   activeIngredient: string | null;
   formulation: string | null;
   dosageNote: string;

@@ -1,4 +1,4 @@
-﻿import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -54,6 +54,8 @@ async function main() {
         category: "bactericide / disease management",
         crop: "Rice",
         targetProblem: "Bacterial blight",
+        targetType: "disease",
+        productPurpose: "Bacterial disease management support",
         activeIngredient: "Copper-based crop protection category",
         formulation: "Use only label-approved formulation",
         dosageNote: "Do not use AI dosage directly. Follow product label and local agriculture officer guidance.",
@@ -70,6 +72,8 @@ async function main() {
         category: "fungicide",
         crop: "Rice",
         targetProblem: "Blast",
+        targetType: "disease",
+        productPurpose: "Fungal disease management support",
         activeIngredient: "Rice blast fungicide category",
         formulation: "Use only registered crop-specific formulation",
         dosageNote: "Use only as per product label for rice blast and land area.",
@@ -86,6 +90,8 @@ async function main() {
         category: "fungicide",
         crop: "Rice",
         targetProblem: "Brown spot",
+        targetType: "disease",
+        productPurpose: "Leaf spot disease management support",
         activeIngredient: "Brown spot disease-management category",
         formulation: "Use only registered crop-specific formulation",
         dosageNote: "Follow product label exactly. Confirm with agriculture officer for your district.",
@@ -102,10 +108,12 @@ async function main() {
         category: "pest / vector management",
         crop: "Rice",
         targetProblem: "Tungro",
+        targetType: "pest / vector",
+        productPurpose: "Leafhopper vector monitoring and management support",
         activeIngredient: "Leafhopper vector management category",
         formulation: "Use only if vector pressure is confirmed",
         dosageNote: "Tungro is viral; chemical products do not cure infected plants. Follow expert advice.",
-        safetyNote: "Remove severe infected plants when advised and manage vectors safely.",
+        safetyNote: "Remove severely infected plants when advised and manage vectors safely.",
         organic: false,
         isVerified: false,
       },
@@ -118,6 +126,8 @@ async function main() {
         category: "fertilizer / nutrition support",
         crop: "Rice",
         targetProblem: "Bacterial blight",
+        targetType: "nutrition",
+        productPurpose: "Crop stress nutrition support, not disease cure",
         activeIngredient: "Balanced nutrition support category",
         formulation: "Use soil-test-based fertilizer plan",
         dosageNote: "Fertilizer does not directly cure disease. Use only based on soil test and crop stage.",
@@ -145,7 +155,7 @@ async function main() {
     }
   }
 
-  console.log("Demo agri shops and products seeded successfully.");
+  console.log("Demo agri shops and products seeded successfully with target type and purpose.");
 }
 
 main()
