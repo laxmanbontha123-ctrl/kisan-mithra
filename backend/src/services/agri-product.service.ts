@@ -16,6 +16,7 @@ export class AgriProductService {
 
     const products = await prisma.agriProduct.findMany({
       where: {
+        isVerified: true,
         crop: {
           equals: crop,
           mode: "insensitive",
@@ -24,9 +25,21 @@ export class AgriProductService {
           contains: problem,
           mode: "insensitive",
         },
+        shopProducts: {
+          some: {
+            shop: {
+              isVerified: true,
+            },
+          },
+        },
       },
       include: {
         shopProducts: {
+          where: {
+            shop: {
+              isVerified: true,
+            },
+          },
           include: {
             shop: true,
           },
@@ -36,8 +49,8 @@ export class AgriProductService {
         },
       },
       orderBy: [
-        { isVerified: "desc" },
         { brandName: "asc" },
+        { productName: "asc" },
       ],
     });
 
@@ -45,8 +58,8 @@ export class AgriProductService {
       success: true,
       message:
         products.length > 0
-          ? "Agri product recommendations fetched successfully."
-          : "No verified local agri products found for this crop and problem yet.",
+          ? "Verified agri product recommendations fetched successfully."
+          : "No verified product or local shop data is available for this crop problem yet. Use the nearby shop finder or consult a local agriculture officer.",
       data: products.map((product) => ({
         id: product.id,
         brandName: product.brandName,
@@ -83,7 +96,7 @@ export class AgriProductService {
         })),
       })),
       disclaimer:
-        "Product names, prices, dosage, and availability must be verified with a licensed local input dealer or agriculture officer before purchase or use.",
+        "Only verified product and shop records are shown here. Always confirm label dosage, stock, price, and suitability with a licensed input dealer or agriculture officer before use.",
     };
   }
 }
