@@ -1,4 +1,4 @@
-﻿const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
 
 type DiseaseRecommendation = {
   crop: string;
@@ -72,6 +72,9 @@ export type AuthUser = {
   phone: string;
   role: string;
   language: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  lastLoginAt?: string | null;
 };
 
 export type AuthResponse = {
@@ -84,6 +87,13 @@ export type AuthResponse = {
 export type ProfileResponse = {
   success: boolean;
   user: AuthUser;
+};
+
+export type PhoneOtpResponse = {
+  success: boolean;
+  message: string;
+  expiresInMinutes: number;
+  devOtp?: string;
 };
 
 export type Crop = {
@@ -260,6 +270,26 @@ export const api = {
     password: string;
   }): Promise<AuthResponse> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<AuthResponse>(response);
+  },
+
+  requestPhoneOtp: async (input: { phone: string }): Promise<PhoneOtpResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/phone/request-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<PhoneOtpResponse>(response);
+  },
+
+  verifyPhoneOtp: async (input: { phone: string; code: string }): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/phone/verify-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
