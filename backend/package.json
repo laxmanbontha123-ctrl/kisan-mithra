@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
+    "nodemailer": "^9.0.3",
     "prisma": "^6.16.2",
     "uuid": "^14.0.1"
   },
@@ -35,6 +36,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.0",
+    "@types/nodemailer": "^8.0.1",
     "tsx": "^4.23.0",
     "typescript": "^6.0.3"
   }

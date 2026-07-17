@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { signToken } from '../utils/jwt';
 import { prisma } from '../utils/prisma';
 import { smsService } from './sms.service';
+import { emailService } from './email.service';
 
 export interface RegisterInput {
   fullName: string;
@@ -262,12 +263,19 @@ export class AuthServiceImpl implements AuthService {
       },
     });
 
+    await emailService.sendEmailVerificationOtp({
+      to: user.email,
+      otp: code,
+      fullName: user.fullName,
+    });
+
+    const isEmailConfigured = emailService.isConfigured();
+
     return {
       success: true,
-      message:
-        process.env.NODE_ENV === 'production'
-          ? 'Verification OTP sent to your email address.'
-          : 'Email verification OTP generated. Development OTP is shown only in local mode.',
+      message: isEmailConfigured
+        ? 'Verification OTP sent to your email address.'
+        : 'Email verification OTP generated. Email provider is not configured yet.',
       expiresInMinutes: 10,
       devOtp: process.env.NODE_ENV === 'production' ? undefined : code,
     };
