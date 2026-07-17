@@ -10,6 +10,7 @@ type LoginMode = "email" | "phone";
 
 export default function LoginPage() {
   const router = useRouter();
+  const shouldShowDevOtp = process.env.NODE_ENV !== "production";
 
   const [mode, setMode] = useState<LoginMode>("email");
 
@@ -58,7 +59,7 @@ export default function LoginPage() {
       const result = await api.requestPhoneOtp({ phone });
       setOtpSent(true);
       setMessage(result.message);
-      setDevOtp(result.devOtp || "");
+      setDevOtp(shouldShowDevOtp ? result.devOtp || "" : "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to send OTP.");
     } finally {
@@ -195,7 +196,7 @@ export default function LoginPage() {
               </div>
             ) : null}
 
-            {devOtp ? (
+            {shouldShowDevOtp && devOtp ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Development OTP: <span className="font-bold">{devOtp}</span>
               </div>

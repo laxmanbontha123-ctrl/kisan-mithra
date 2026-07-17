@@ -8,6 +8,7 @@ import { api } from "@/src/services/api";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const shouldShowDevOtp = process.env.NODE_ENV !== "production";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -47,7 +48,7 @@ export default function RegisterPage() {
       setRegisteredEmail(result.user.email);
 
       const otpResult = await api.requestEmailVerification({ email: result.user.email });
-      setDevOtp(otpResult.devOtp || "");
+      setDevOtp(shouldShowDevOtp ? otpResult.devOtp || "" : "");
       setShowEmailVerification(true);
       setMessage(otpResult.message);
     } catch (err) {
@@ -85,7 +86,7 @@ export default function RegisterPage() {
 
     try {
       const otpResult = await api.requestEmailVerification({ email: registeredEmail });
-      setDevOtp(otpResult.devOtp || "");
+      setDevOtp(shouldShowDevOtp ? otpResult.devOtp || "" : "");
       setMessage(otpResult.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to resend OTP.");
@@ -204,7 +205,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            {devOtp ? (
+            {shouldShowDevOtp && devOtp ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Development OTP: <span className="font-bold">{devOtp}</span>
               </div>
