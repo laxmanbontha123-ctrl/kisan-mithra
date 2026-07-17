@@ -1,65 +1,102 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
+import {
+  RecaptchaVerifier,
+  type ConfirmationResult,
+  signInWithPhoneNumber,
+} from "firebase/auth";
 
 import { api } from "@/src/services/api";
+import { firebaseAuth } from "@/src/services/firebase";
 
 type LoginMode = "email" | "phone";
 
+function formatPhoneForFirebase(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+
+  if (digits.startsWith("91") && digits.length === 12) {
+    return `+${digits}`;
+  }
+
+  return phone.startsWith("+") ? phone : `+${digits}`;
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const shouldShowDevOtp = process.env.NODE_ENV !== "production";
 
-  const [mode, setMode] = useState<LoginMode>("email");
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [phone, setPhone] = useState("");
+  const [mode, setMode] = useState<LoginMode>("phone");
+  const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
-  const [devOtp, setDevOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  function saveSession(result: Awaited<ReturnType<typeof api.login>>) {
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+  const confirmationResultRef = useRef<ConfirmationResult | null>(null);
+
+  function resetFlow(nextMode: LoginMode) {
+    setMode(nextMode);
+    setIdentifier("");
+    setOtp("");
+    setOtpSent(false);
+    setMessage("");
+    setError("");
+    confirmationResultRef.current = null;
+  }
+
+  function saveSession(result: Awaited<ReturnType<typeof api.verifyEmailOtp>>) {
     window.localStorage.setItem("token", result.token);
     window.localStorage.setItem("user", JSON.stringify(result.user));
     router.push("/dashboard");
   }
 
-  async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-    setIsLoading(true);
-
-    try {
-      const result = await api.login({ email, password });
-      saveSession(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+  function getRecaptchaVerifier() {
+    if (!recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(
+        firebaseAuth,
+        "firebase-recaptcha-container",
+        {
+          size: "invisible",
+        },
+      );
     }
+
+    return recaptchaVerifierRef.current;
   }
 
   async function handleRequestOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setMessage("");
-    setDevOtp("");
+    setOtp("");
     setIsLoading(true);
 
     try {
-      const result = await api.requestPhoneOtp({ phone });
-      setOtpSent(true);
-      setMessage(result.message);
-      setDevOtp(shouldShowDevOtp ? result.devOtp || "" : "");
+      if (mode === "email") {
+        const result = await api.requestEmailOtp({ email: identifier });
+        setOtpSent(true);
+        setMessage(result.message);
+      } else {
+        const formattedPhone = formatPhoneForFirebase(identifier);
+        const verifier = getRecaptchaVerifier();
+        const confirmationResult = await signInWithPhoneNumber(
+          firebaseAuth,
+          formattedPhone,
+          verifier,
+        );
+
+        confirmationResultRef.current = confirmationResult;
+        setOtpSent(true);
+        setMessage("OTP sent successfully to your mobile number.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to send OTP.");
     } finally {
@@ -74,8 +111,19 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await api.verifyPhoneOtp({ phone, code: otp });
-      saveSession(result);
+      if (mode === "email") {
+        const result = await api.verifyEmailOtp({ email: identifier, code: otp });
+        saveSession(result);
+      } else {
+        if (!confirmationResultRef.current) {
+          throw new Error("Please request phone OTP again.");
+        }
+
+        const firebaseResult = await confirmationResultRef.current.confirm(otp);
+        const idToken = await firebaseResult.user.getIdToken();
+        const result = await api.loginWithFirebasePhone({ idToken });
+        saveSession(result);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "OTP verification failed.");
     } finally {
@@ -86,40 +134,22 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-lime-50 px-6 py-16">
       <section className="mx-auto max-w-md rounded-3xl border border-emerald-100 bg-white p-8 shadow-xl shadow-emerald-100/60">
+        <div id="firebase-recaptcha-container" />
+
         <div className="mb-8 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-            Welcome back
+            Kisan Mithra Login
           </p>
-          <h1 className="mt-3 text-3xl font-bold text-slate-900">Login to Kisan Mithra</h1>
+          <h1 className="mt-3 text-3xl font-bold text-slate-900">Login with OTP</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Access your farm dashboard, scan history, and smart advisories.
+            Enter your mobile number or email. New farmers will be registered automatically after OTP verification.
           </p>
         </div>
 
         <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
           <button
             type="button"
-            onClick={() => {
-              setMode("email");
-              setError("");
-              setMessage("");
-            }}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-              mode === "email"
-                ? "bg-white text-emerald-700 shadow-sm"
-                : "text-slate-600 hover:text-emerald-700"
-            }`}
-          >
-            Email Login
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setMode("phone");
-              setError("");
-              setMessage("");
-            }}
+            onClick={() => resetFlow("phone")}
             className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
               mode === "phone"
                 ? "bg-white text-emerald-700 shadow-sm"
@@ -128,111 +158,79 @@ export default function LoginPage() {
           >
             Mobile OTP
           </button>
+
+          <button
+            type="button"
+            onClick={() => resetFlow("email")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+              mode === "email"
+                ? "bg-white text-emerald-700 shadow-sm"
+                : "text-slate-600 hover:text-emerald-700"
+            }`}
+          >
+            Email OTP
+          </button>
         </div>
 
-        {mode === "email" ? (
-          <form onSubmit={handleEmailLogin} className="space-y-5">
+        <form onSubmit={otpSent ? handleVerifyOtp : handleRequestOtp} className="space-y-5">
+          <div>
+            <label className="text-sm font-medium text-slate-700">
+              {mode === "email" ? "Email address" : "Mobile number"}
+            </label>
+            <input
+              type={mode === "email" ? "email" : "tel"}
+              required
+              value={identifier}
+              disabled={otpSent}
+              onChange={(event) => setIdentifier(event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:bg-slate-50 disabled:text-slate-500"
+              placeholder={mode === "email" ? "farmer@example.com" : "9876543210"}
+            />
+          </div>
+
+          {otpSent ? (
             <div>
-              <label className="text-sm font-medium text-slate-700">Email address</label>
+              <label className="text-sm font-medium text-slate-700">6-digit OTP</label>
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                inputMode="numeric"
+                minLength={6}
+                maxLength={6}
+                value={otp}
+                onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
                 className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder="farmer@example.com"
+                placeholder="Enter OTP"
               />
             </div>
+          ) : null}
 
-            <div>
-              <label className="text-sm font-medium text-slate-700">Password</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder="Enter your password"
-              />
-            </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full rounded-2xl bg-emerald-600 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isLoading
+              ? otpSent
+                ? "Verifying OTP..."
+                : "Sending OTP..."
+              : otpSent
+                ? "Verify OTP & Continue"
+                : mode === "email"
+                  ? "Send Email OTP"
+                  : "Send Mobile OTP"}
+          </button>
 
+          {otpSent ? (
             <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full rounded-2xl bg-emerald-600 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+              type="button"
+              onClick={() => resetFlow(mode)}
+              className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
             >
-              {isLoading ? "Logging in..." : "Login with Email"}
+              Change {mode === "email" ? "email" : "mobile number"}
             </button>
-          </form>
-        ) : (
-          <form onSubmit={otpSent ? handleVerifyOtp : handleRequestOtp} className="space-y-5">
-            <div>
-              <label className="text-sm font-medium text-slate-700">Mobile number</label>
-              <input
-                type="tel"
-                required
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                placeholder="Enter registered mobile number"
-              />
-            </div>
-
-            {otpSent ? (
-              <div>
-                <label className="text-sm font-medium text-slate-700">6-digit OTP</label>
-                <input
-                  type="text"
-                  required
-                  inputMode="numeric"
-                  minLength={6}
-                  maxLength={6}
-                  value={otp}
-                  onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-                  placeholder="Enter OTP"
-                />
-              </div>
-            ) : null}
-
-            {shouldShowDevOtp && devOtp ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Development OTP: <span className="font-bold">{devOtp}</span>
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full rounded-2xl bg-emerald-600 px-5 py-3 font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isLoading
-                ? otpSent
-                  ? "Verifying OTP..."
-                  : "Sending OTP..."
-                : otpSent
-                  ? "Verify OTP & Login"
-                  : "Send OTP"}
-            </button>
-
-            {otpSent ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setOtpSent(false);
-                  setOtp("");
-                  setDevOtp("");
-                  setMessage("");
-                  setError("");
-                }}
-                className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-              >
-                Change mobile number
-              </button>
-            ) : null}
-          </form>
-        )}
+          ) : null}
+        </form>
 
         {message ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -246,11 +244,8 @@ export default function LoginPage() {
           </div>
         ) : null}
 
-        <p className="mt-6 text-center text-sm text-slate-600">
-          New to Kisan Mithra?{" "}
-          <Link href="/register" className="font-semibold text-emerald-700 hover:text-emerald-800">
-            Create account
-          </Link>
+        <p className="mt-6 text-center text-xs leading-5 text-slate-500">
+          No password needed. OTP verification will create or open your farmer account.
         </p>
       </section>
     </main>

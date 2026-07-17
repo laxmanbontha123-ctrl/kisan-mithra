@@ -2,7 +2,8 @@ import jwt, { type JwtPayload } from 'jsonwebtoken';
 
 export interface JwtUserPayload {
   id: string;
-  email: string;
+  email?: string | null;
+  phone?: string | null;
   role: string;
 }
 
@@ -21,9 +22,14 @@ export const verifyToken = (token: string, secret: string = DEFAULT_SECRET): Jwt
 
   const payload = decoded as JwtPayload & JwtUserPayload;
 
+  if (typeof payload.id !== 'string' || typeof payload.role !== 'string') {
+    throw new Error('Invalid token payload.');
+  }
+
   return {
     id: payload.id,
-    email: payload.email,
+    email: typeof payload.email === 'string' ? payload.email : null,
+    phone: typeof payload.phone === 'string' ? payload.phone : null,
     role: payload.role,
   };
 };

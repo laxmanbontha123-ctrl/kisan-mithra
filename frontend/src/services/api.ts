@@ -68,8 +68,8 @@ export type WeatherForecastResponse = {
 export type AuthUser = {
   id: string;
   fullName: string;
-  email: string;
-  phone: string;
+  email: string | null;
+  phone: string | null;
   role: string;
   language: string;
   emailVerified?: boolean;
@@ -285,6 +285,16 @@ export const api = {
     return parseJsonResponse<AuthResponse>(response);
   },
 
+  requestEmailOtp: async (input: { email: string }): Promise<EmailOtpResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/email/request-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<EmailOtpResponse>(response);
+  },
+
   requestEmailVerification: async (input: { email: string }): Promise<EmailOtpResponse> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/email/request-verification`, {
       method: "POST",
@@ -317,6 +327,16 @@ export const api = {
 
   verifyPhoneOtp: async (input: { phone: string; code: string }): Promise<AuthResponse> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/phone/verify-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<AuthResponse>(response);
+  },
+
+  loginWithFirebasePhone: async (input: { idToken: string }): Promise<AuthResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/firebase/phone-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),

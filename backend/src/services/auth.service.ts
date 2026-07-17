@@ -1,20 +1,10 @@
 import bcrypt from 'bcrypt';
+import type { User } from '@prisma/client';
 import { signToken } from '../utils/jwt';
 import { prisma } from '../utils/prisma';
 import { smsService } from './sms.service';
 import { emailService } from './email.service';
-
-export interface RegisterInput {
-  fullName: string;
-  email: string;
-  phone: string;
-  password: string;
-}
-
-export interface LoginInput {
-  email: string;
-  password: string;
-}
+import { firebaseAdminAuth } from './firebase-admin.service';
 
 export interface RequestPhoneOtpInput {
   phone: string;
@@ -25,7 +15,7 @@ export interface VerifyPhoneOtpInput {
   code: string;
 }
 
-export interface RequestEmailVerificationInput {
+export interface RequestEmailOtpInput {
   email: string;
 }
 
@@ -35,12 +25,11 @@ export interface VerifyEmailOtpInput {
 }
 
 export interface AuthService {
-  register: (input: RegisterInput) => Promise<unknown>;
-  login: (input: LoginInput) => Promise<unknown>;
   requestPhoneOtp: (input: RequestPhoneOtpInput) => Promise<unknown>;
   verifyPhoneOtp: (input: VerifyPhoneOtpInput) => Promise<unknown>;
-  requestEmailVerification: (input: RequestEmailVerificationInput) => Promise<unknown>;
+  requestEmailOtp: (input: RequestEmailOtpInput) => Promise<unknown>;
   verifyEmailOtp: (input: VerifyEmailOtpInput) => Promise<unknown>;
+  loginWithFirebasePhone: (idToken: string) => Promise<unknown>;
   getProfile: (userId: string) => Promise<unknown>;
 }
 
@@ -52,95 +41,73 @@ function minutesFromNow(minutes: number): Date {
   return new Date(Date.now() + minutes * 60 * 1000);
 }
 
+function buildAuthResponse(user: User, message: string) {
+  const token = signToken({
+    id: user.id,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+  });
+
+  return {
+    success: true,
+    message,
+    token,
+    user: {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      language: user.language,
+      emailVerified: user.emailVerified,
+      phoneVerified: user.phoneVerified,
+    },
+  };
+}
+
+async function assertValidOtp(identifier: string, type: string, code: string) {
+  const otp = await prisma.authOtp.findFirst({
+    where: {
+      identifier,
+      type,
+      consumedAt: null,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  if (!otp) {
+    throw new Error('OTP expired or not found. Please request a new OTP.');
+  }
+
+  if (otp.attempts >= 5) {
+    throw new Error('Too many wrong attempts. Please request a new OTP.');
+  }
+
+  const isValid = await bcrypt.compare(code, otp.codeHash);
+
+  if (!isValid) {
+    await prisma.authOtp.update({
+      where: { id: otp.id },
+      data: { attempts: { increment: 1 } },
+    });
+
+    throw new Error('Invalid OTP.');
+  }
+
+  await prisma.authOtp.update({
+    where: { id: otp.id },
+    data: { consumedAt: new Date() },
+  });
+}
+
 export class AuthServiceImpl implements AuthService {
-  public async register(input: RegisterInput): Promise<unknown> {
-    const existingUserByEmail = await prisma.user.findUnique({ where: { email: input.email } });
-
-    if (existingUserByEmail) {
-      throw new Error('Email already registered.');
-    }
-
-    const existingUserByPhone = await prisma.user.findUnique({ where: { phone: input.phone } });
-
-    if (existingUserByPhone) {
-      throw new Error('Phone already registered.');
-    }
-
-    const hashedPassword = await bcrypt.hash(input.password, 12);
-    const user = await prisma.user.create({
-      data: {
-        fullName: input.fullName,
-        email: input.email,
-        phone: input.phone,
-        password: hashedPassword,
-        role: 'farmer',
-        language: 'en',
-      },
-    });
-
-    const token = signToken({ id: user.id, email: user.email, role: user.role });
-
-    return {
-      success: true,
-      message: 'Registration successful',
-      token,
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        language: user.language,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-      },
-    };
-  }
-
-  public async login(input: LoginInput): Promise<unknown> {
-    const user = await prisma.user.findUnique({ where: { email: input.email } });
-
-    if (!user) {
-      throw new Error('Invalid email or password');
-    }
-
-    const isPasswordValid = await bcrypt.compare(input.password, user.password);
-
-    if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
-    const token = signToken({ id: user.id, email: user.email, role: user.role });
-
-    return {
-      success: true,
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        language: user.language,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-      },
-    };
-  }
-
   public async requestPhoneOtp(input: RequestPhoneOtpInput): Promise<unknown> {
-    const user = await prisma.user.findUnique({ where: { phone: input.phone } });
-
-    if (!user) {
-      throw new Error('No account found with this phone number. Please register first.');
-    }
-
     const code = generateOtp();
     const codeHash = await bcrypt.hash(code, 12);
 
@@ -171,102 +138,47 @@ export class AuthServiceImpl implements AuthService {
   }
 
   public async verifyPhoneOtp(input: VerifyPhoneOtpInput): Promise<unknown> {
-    const otp = await prisma.authOtp.findFirst({
-      where: {
-        identifier: input.phone,
-        type: 'phone_login',
-        consumedAt: null,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    await assertValidOtp(input.phone, 'phone_login', input.code);
 
-    if (!otp) {
-      throw new Error('OTP expired or not found. Please request a new OTP.');
-    }
+    const existingUser = await prisma.user.findUnique({ where: { phone: input.phone } });
 
-    if (otp.attempts >= 5) {
-      throw new Error('Too many wrong attempts. Please request a new OTP.');
-    }
+    const user = existingUser
+      ? await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            phoneVerified: true,
+            lastLoginAt: new Date(),
+          },
+        })
+      : await prisma.user.create({
+          data: {
+            phone: input.phone,
+            phoneVerified: true,
+            lastLoginAt: new Date(),
+          },
+        });
 
-    const isValid = await bcrypt.compare(input.code, otp.codeHash);
-
-    if (!isValid) {
-      await prisma.authOtp.update({
-        where: { id: otp.id },
-        data: { attempts: { increment: 1 } },
-      });
-
-      throw new Error('Invalid OTP.');
-    }
-
-    const user = await prisma.user.update({
-      where: { phone: input.phone },
-      data: {
-        phoneVerified: true,
-        lastLoginAt: new Date(),
-      },
-    });
-
-    await prisma.authOtp.update({
-      where: { id: otp.id },
-      data: { consumedAt: new Date() },
-    });
-
-    const token = signToken({ id: user.id, email: user.email, role: user.role });
-
-    return {
-      success: true,
-      message: 'Phone OTP login successful',
-      token,
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        language: user.language,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-      },
-    };
+    return buildAuthResponse(user, existingUser ? 'Phone OTP login successful' : 'Account created and phone verified successfully');
   }
 
-  public async requestEmailVerification(input: RequestEmailVerificationInput): Promise<unknown> {
-    const user = await prisma.user.findUnique({ where: { email: input.email } });
-
-    if (!user) {
-      throw new Error('No account found with this email address.');
-    }
-
-    if (user.emailVerified) {
-      return {
-        success: true,
-        message: 'Email is already verified.',
-        expiresInMinutes: 0,
-      };
-    }
-
+  public async requestEmailOtp(input: RequestEmailOtpInput): Promise<unknown> {
+    const existingUser = await prisma.user.findUnique({ where: { email: input.email } });
     const code = generateOtp();
     const codeHash = await bcrypt.hash(code, 12);
 
     await prisma.authOtp.create({
       data: {
         identifier: input.email,
-        type: 'email_verification',
+        type: 'email_login',
         codeHash,
         expiresAt: minutesFromNow(10),
       },
     });
 
     await emailService.sendEmailVerificationOtp({
-      to: user.email,
+      to: input.email,
       otp: code,
-      fullName: user.fullName,
+      fullName: existingUser?.fullName,
     });
 
     const isEmailConfigured = emailService.isConfigured();
@@ -274,76 +186,72 @@ export class AuthServiceImpl implements AuthService {
     return {
       success: true,
       message: isEmailConfigured
-        ? 'Verification OTP sent to your email address.'
-        : 'Email verification OTP generated. Email provider is not configured yet.',
+        ? 'OTP sent successfully to your email address.'
+        : 'Email OTP generated. Email provider is not configured yet.',
       expiresInMinutes: 10,
       devOtp: process.env.NODE_ENV === 'production' ? undefined : code,
     };
   }
 
   public async verifyEmailOtp(input: VerifyEmailOtpInput): Promise<unknown> {
-    const otp = await prisma.authOtp.findFirst({
-      where: {
-        identifier: input.email,
-        type: 'email_verification',
-        consumedAt: null,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    await assertValidOtp(input.email, 'email_login', input.code);
 
-    if (!otp) {
-      throw new Error('Email OTP expired or not found. Please request a new OTP.');
+    const existingUser = await prisma.user.findUnique({ where: { email: input.email } });
+
+    const user = existingUser
+      ? await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            emailVerified: true,
+            lastLoginAt: new Date(),
+          },
+        })
+      : await prisma.user.create({
+          data: {
+            email: input.email,
+            emailVerified: true,
+            lastLoginAt: new Date(),
+          },
+        });
+
+    return buildAuthResponse(user, existingUser ? 'Email OTP login successful' : 'Account created and email verified successfully');
+  }
+
+
+  public async loginWithFirebasePhone(idToken: string): Promise<unknown> {
+    const decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
+    const firebasePhone = decodedToken.phone_number;
+
+    if (!firebasePhone) {
+      throw new Error('Firebase token does not contain a verified phone number.');
     }
 
-    if (otp.attempts >= 5) {
-      throw new Error('Too many wrong attempts. Please request a new OTP.');
+    const digits = firebasePhone.replace(/\D/g, '');
+    const phone = digits.length > 10 ? digits.slice(-10) : digits;
+
+    if (phone.length < 10) {
+      throw new Error('Invalid verified phone number received from Firebase.');
     }
 
-    const isValid = await bcrypt.compare(input.code, otp.codeHash);
+    const existingUser = await prisma.user.findUnique({ where: { phone } });
 
-    if (!isValid) {
-      await prisma.authOtp.update({
-        where: { id: otp.id },
-        data: { attempts: { increment: 1 } },
-      });
+    const user = existingUser
+      ? await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            phoneVerified: true,
+            lastLoginAt: new Date(),
+          },
+        })
+      : await prisma.user.create({
+          data: {
+            phone,
+            phoneVerified: true,
+            lastLoginAt: new Date(),
+          },
+        });
 
-      throw new Error('Invalid email OTP.');
-    }
-
-    const user = await prisma.user.update({
-      where: { email: input.email },
-      data: {
-        emailVerified: true,
-      },
-    });
-
-    await prisma.authOtp.update({
-      where: { id: otp.id },
-      data: { consumedAt: new Date() },
-    });
-
-    const token = signToken({ id: user.id, email: user.email, role: user.role });
-
-    return {
-      success: true,
-      message: 'Email verification successful',
-      token,
-      user: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        language: user.language,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-      },
-    };
+    return buildAuthResponse(user, existingUser ? 'Firebase phone login successful' : 'Account created with Firebase phone verification');
   }
 
   public async getProfile(userId: string): Promise<unknown> {
