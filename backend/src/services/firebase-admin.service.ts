@@ -1,16 +1,28 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
+function loadServiceAccount(): Record<string, unknown> {
+  const envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
-const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf-8')) as Record<string, unknown>;
+  if (envJson) {
+    return JSON.parse(envJson) as Record<string, unknown>;
+  }
+
+  const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
+
+  if (existsSync(serviceAccountPath)) {
+    return JSON.parse(readFileSync(serviceAccountPath, 'utf-8')) as Record<string, unknown>;
+  }
+
+  throw new Error('Firebase service account credentials are missing.');
+}
 
 const app = getApps().length
   ? getApps()[0]
   : initializeApp({
-      credential: cert(serviceAccount),
+      credential: cert(loadServiceAccount()),
     });
 
 export const firebaseAdminAuth = getAuth(app);
