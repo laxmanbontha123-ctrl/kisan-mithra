@@ -1,7 +1,8 @@
-import app from './app';
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ override: true });
+
+import app from './app';
 
 const port = Number(process.env.PORT) || 5000;
 
