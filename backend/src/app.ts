@@ -15,13 +15,6 @@ dotenv.config();
 
 const app = express();
 
-const corsOptions = {
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Authorization', 'Content-Type'],
-};
-
-app.use(helmet());
 const corsOptions: CorsOptions = {
   origin(origin, callback) {
     const allowedOrigins = [
@@ -49,6 +42,9 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+
+app.use(helmet());
 app.use(express.json());
 app.use(morgan('dev'));
 
