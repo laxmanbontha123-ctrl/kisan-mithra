@@ -1,5 +1,5 @@
-﻿import express, { type Request, type Response } from 'express';
-import cors from 'cors';
+import express, { type Request, type Response } from 'express';
+import cors, { type CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
@@ -22,6 +22,32 @@ const corsOptions = {
 };
 
 app.use(helmet());
+const corsOptions: CorsOptions = {
+  origin(origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "https://kisan-mithra.vercel.app",
+      "https://kisan-mithra-77gp6fv8k-kisan-mithra.vercel.app",
+    ];
+
+    const extraOrigins = (process.env.FRONTEND_URL ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const allAllowedOrigins = [...allowedOrigins, ...extraOrigins];
+
+    if (!origin || allAllowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+};
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
