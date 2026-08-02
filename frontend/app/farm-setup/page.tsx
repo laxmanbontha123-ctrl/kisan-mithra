@@ -16,8 +16,8 @@ const initialForm = {
   soilType: "Red soil",
   irrigationMethod: "Drip irrigation",
   location: "",
-  latitude: "17.3850",
-  longitude: "78.4867",
+  latitude: "",
+  longitude: "",
   sowingDate: "",
   expectedHarvestDate: "",
 };
@@ -139,26 +139,43 @@ export default function FarmSetupPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_42%),linear-gradient(180deg,#f8fffb_0%,#eef7f2_100%)] text-slate-900">
-      <Navbar />
+    <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#020b05] text-slate-900">
+      <video
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-30 h-full w-full object-cover opacity-90 brightness-100 saturate-125"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      >
+        <source src="/videos/farm-setup-background.mp4" type="video/mp4" />
+      </video>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
+      <div className="pointer-events-none fixed inset-0 -z-20 bg-[linear-gradient(135deg,rgba(2,11,5,0.48)_0%,rgba(4,47,24,0.28)_48%,rgba(2,11,5,0.55)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(34,197,94,0.20),transparent_32%),radial-gradient(circle_at_85%_25%,rgba(190,242,100,0.12),transparent_28%)]" />
+
+      <div className="relative z-30">
+        <Navbar />
+      </div>
+
+      <main className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-lime-300">
               Farmer Profile
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-5xl">
               Farm Setup
             </h1>
-            <p className="mt-3 max-w-2xl text-slate-600">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-emerald-50/85">
               Add your crop, soil, land, irrigation, and location details. These details will power future fertilizer, soil, weather, and market recommendations.
             </p>
           </div>
 
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-4 py-2 text-sm font-semibold text-white shadow-xl backdrop-blur-xl transition hover:bg-white/15"
           >
             <ArrowLeft className="h-4 w-4" />
             Dashboard
@@ -168,7 +185,7 @@ export default function FarmSetupPage() {
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <form
             onSubmit={handleSubmit}
-            className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-xl shadow-emerald-100/50"
+            className="rounded-3xl border border-white/25 bg-white/92 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl"
           >
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
@@ -340,7 +357,7 @@ export default function FarmSetupPage() {
             </div>
           </form>
 
-          <section className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl shadow-slate-200/50">
+          <section className="rounded-3xl border border-white/25 bg-white/92 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
             <div className="mb-6 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">Saved farms</h2>
@@ -409,7 +426,10 @@ export default function FarmSetupPage() {
         </section>
       </main>
 
-      <Footer />
+      <div className="relative z-20">
+        <Footer />
+      </div>
     </div>
   );
 }
+
