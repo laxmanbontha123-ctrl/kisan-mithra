@@ -124,27 +124,44 @@ export default function DiseaseHistoryPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_42%),linear-gradient(180deg,_#f8fffb_0%,_#eef7f2_100%)] text-slate-900">
-      <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
+    <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#020b05] text-slate-900">
+      <video
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 h-full w-full object-cover opacity-100 brightness-125 saturate-140"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      >
+        <source src="/videos/disease-history-background.mp4" type="video/mp4" />
+      </video>
+
+      <div className="pointer-events-none fixed inset-0 z-10 bg-[linear-gradient(135deg,rgba(2,11,5,0.18)_0%,rgba(4,47,24,0.08)_48%,rgba(2,11,5,0.22)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(34,197,94,0.18),transparent_32%),radial-gradient(circle_at_82%_20%,rgba(6,182,212,0.12),transparent_28%)]" />
+
+      <div className="relative z-30">
+        <Navbar />
+      </div>
+      <main className="relative z-20 mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Plant Health AI</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Disease Scan History</h1>
-            <p className="mt-3 max-w-2xl text-slate-600">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-lime-300">Plant Health AI</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-5xl">Disease Scan History</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-emerald-50/90">
               Review recent saved plant disease scans with confidence, crop details, and treatment summaries.
             </p>
           </div>
           <Link
             href="/disease-scan"
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-4 py-2 text-sm font-semibold text-white shadow-xl backdrop-blur-xl transition hover:bg-white/15"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Scan
           </Link>
         </div>
 
-        <section className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
+        <section className="rounded-3xl border border-white/25 bg-white/92 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Saved Records</p>
@@ -189,7 +206,7 @@ export default function DiseaseHistoryPage() {
               ) : null}
 
               {scans.map((scan) => (
-                <article key={scan.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <article key={scan.id} className="rounded-2xl border border-emerald-100/80 bg-white/88 p-5 shadow-lg shadow-emerald-950/10 backdrop-blur-xl">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Predicted Disease</p>
@@ -250,8 +267,12 @@ export default function DiseaseHistoryPage() {
           )}
         </section>
       </main>
-      <Footer />
+      <div className="relative z-20">
+        <Footer />
+      </div>
     </div>
   );
 }
+
+
 
