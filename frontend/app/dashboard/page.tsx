@@ -180,71 +180,345 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_42%),linear-gradient(180deg,#f8fffb_0%,#eef7f2_100%)] text-slate-900">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#031108] text-slate-900">
+      <style>{`
+        @keyframes dashboardAurora {
+          0%, 100% { transform: translate3d(-4%, -2%, 0) scale(1); opacity: 0.8; }
+          50% { transform: translate3d(5%, 4%, 0) scale(1.12); opacity: 1; }
+        }
+
+        @keyframes dashboardFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+
+        @keyframes dashboardSweep {
+          0% { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+          25% { opacity: 0.9; }
+          100% { transform: translateX(120%) skewX(-18deg); opacity: 0; }
+        }
+
+        @keyframes fieldMove {
+          0% { transform: translateY(-18px) scaleX(0.82); opacity: 0; }
+          30% { opacity: 0.75; }
+          100% { transform: translateY(38px) scaleX(1.18); opacity: 0; }
+        }
+
+        @keyframes pulseWeather {
+          0%, 100% { box-shadow: 0 24px 80px -48px rgba(34,197,94,0.7); }
+          50% { box-shadow: 0 34px 110px -42px rgba(190,242,100,0.85); }
+        }
+
+        .dashboard-hero {
+          animation: dashboardFloat 6s ease-in-out infinite;
+        }
+
+        .dashboard-card {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .dashboard-card::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          width: 45%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+          transform: translateX(-120%) skewX(-18deg);
+          animation: dashboardSweep 4.5s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .dashboard-panel {
+          position: relative;
+          overflow: hidden;
+          backdrop-filter: blur(22px);
+        }
+
+        .weather-pulse {
+          animation: pulseWeather 4s ease-in-out infinite;
+        }
+
+        .crop-lines {
+          transform: perspective(900px) rotateX(62deg);
+          transform-origin: bottom center;
+        }
+
+        @keyframes scannerPulse {
+          0%, 100% { transform: scale(0.85); opacity: 0.35; }
+          50% { transform: scale(1.1); opacity: 0.9; }
+        }
+
+        @keyframes videoFloat {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-16px) rotate(1deg); }
+        }
+
+        @keyframes cardGlow {
+          0%, 100% { box-shadow: 0 28px 90px -58px rgba(16,185,129,0.55); }
+          50% { box-shadow: 0 34px 120px -46px rgba(190,242,100,0.75); }
+        }
+
+        .cinematic-tile {
+          animation: videoFloat 6s ease-in-out infinite, cardGlow 4.5s ease-in-out infinite;
+        }
+
+        .scanner-ring {
+          animation: scannerPulse 2.6s ease-in-out infinite;
+        }
+
+        .feature-card {
+          animation: cardGlow 5s ease-in-out infinite;
+        }
+
+        @keyframes radarPulse {
+          0% { transform: translate(-50%, -50%) scale(0.55); opacity: 0.85; }
+          100% { transform: translate(-50%, -50%) scale(1.55); opacity: 0; }
+        }
+
+        @keyframes droneTravel {
+          0%, 100% { transform: translate(0, 0) rotate(-8deg); }
+          25% { transform: translate(110px, -42px) rotate(12deg); }
+          50% { transform: translate(210px, 18px) rotate(4deg); }
+          75% { transform: translate(95px, 70px) rotate(-14deg); }
+        }
+
+        @keyframes dataBeam {
+          0% { transform: translateX(-120%); opacity: 0; }
+          30% { opacity: 1; }
+          100% { transform: translateX(120%); opacity: 0; }
+        }
+
+        @keyframes meterGlow {
+          0%, 100% { width: 42%; opacity: 0.65; }
+          50% { width: 92%; opacity: 1; }
+        }
+
+        @keyframes statusBlink {
+          0%, 100% { opacity: 0.45; box-shadow: 0 0 0 rgba(190,242,100,0); }
+          50% { opacity: 1; box-shadow: 0 0 22px rgba(190,242,100,0.85); }
+        }
+
+        @keyframes panelEnter {
+          from { opacity: 0; transform: translateY(22px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .command-panel {
+          animation: panelEnter 700ms ease both;
+        }
+
+        .radar-ring {
+          animation: radarPulse 2.8s ease-out infinite;
+        }
+
+        .drone-dot {
+          animation: droneTravel 7s ease-in-out infinite;
+        }
+
+        .data-beam {
+          animation: dataBeam 3.8s ease-in-out infinite;
+        }
+
+        .meter-line {
+          animation: meterGlow 3.2s ease-in-out infinite;
+        }
+
+        .live-dot {
+          animation: statusBlink 1.8s ease-in-out infinite;
+        }
+      `}</style>
+
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(34,197,94,0.34),transparent_30%),radial-gradient(circle_at_82%_18%,rgba(59,130,246,0.20),transparent_28%),radial-gradient(circle_at_50%_100%,rgba(190,242,100,0.16),transparent_32%),linear-gradient(135deg,#020b05_0%,#052b18_48%,#06111f_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(132,204,22,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(132,204,22,0.08)_1px,transparent_1px)] bg-[size:54px_54px] opacity-45" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.42)_76%)]" />
+      <div className="pointer-events-none absolute left-[-15%] top-[-20%] h-[34rem] w-[34rem] rounded-full bg-emerald-400/20 blur-3xl" style={{ animation: "dashboardAurora 10s ease-in-out infinite" }} />
+      <div className="pointer-events-none absolute bottom-[-20%] right-[-12%] h-[38rem] w-[38rem] rounded-full bg-lime-300/20 blur-3xl" style={{ animation: "dashboardAurora 12s ease-in-out infinite reverse" }} />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:80px_80px] opacity-50" />
+
+      <div className="crop-lines pointer-events-none absolute bottom-[-20%] left-[-10%] h-[45vh] w-[120%] overflow-hidden opacity-70">
+        {Array.from({ length: 18 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-transparent via-lime-200/45 to-transparent"
+            style={{
+              top: `${index * 5}%`,
+              animation: `fieldMove ${3.4 + index * 0.06}s linear infinite`,
+              animationDelay: `${index * 0.14}s`,
+            }}
+          />
+        ))}
+      </div>
+
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Farm Operations</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              {profile ? `Welcome, ${profile.fullName}` : "Dashboard"}
-            </h1>
-            <p className="mt-3 max-w-2xl text-slate-600">
-              {profileLoading
-                ? "Loading your farmer profile..."
-                : "Your personalized farm control center with recent disease scans, weather advisories, and smart farming actions."}
-            </p>
+      <main className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
+        <div className="command-panel relative mb-8 overflow-hidden rounded-[2.6rem] border border-lime-200/20 bg-[#04130b]/82 p-6 shadow-2xl shadow-black/35 backdrop-blur-2xl lg:p-8">
+          <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(34,197,94,0.20),transparent_35%,rgba(59,130,246,0.12)_65%,transparent)]" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-lime-200/70 to-transparent" />
+          <div className="data-beam absolute left-0 top-16 h-24 w-1/2 bg-gradient-to-r from-transparent via-lime-200/18 to-transparent blur-md" />
+
+          <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_0.95fr]">
+            <div>
+              <div className="inline-flex items-center gap-3 rounded-full border border-lime-200/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-lime-200">
+                <span className="live-dot h-2.5 w-2.5 rounded-full bg-lime-300" />
+                AI Farm Command Center
+              </div>
+
+              <h1 className="mt-5 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight text-white sm:text-6xl">
+                {profile ? `Welcome, ${profile.fullName}` : "Dashboard"}
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-base leading-8 text-emerald-50/82 sm:text-lg">
+                {profileLoading
+                  ? "Loading your farmer profile..."
+                  : "Monitor crop health, weather risk, disease scans, and farm activity from one intelligent control dashboard."}
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  href="/disease-scan"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-lime-400 px-5 py-3 text-sm font-black text-white shadow-xl shadow-emerald-700/30 transition hover:scale-[1.03]"
+                >
+                  Start AI Scan
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+
+                <Link
+                  href="/weather-alerts"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-5 py-3 text-sm font-black text-white shadow-lg shadow-black/20 backdrop-blur-xl transition hover:bg-white/22"
+                >
+                  Weather Control
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
+                {[
+                  ["Crop Health", "92% stable"],
+                  ["Rain Risk", "24% today"],
+                  ["AI Status", "Live scan"],
+                ].map(([label, value], index) => (
+                  <div key={label} className="rounded-2xl border border-white/14 bg-white/10 p-4 shadow-xl shadow-black/20 backdrop-blur-xl">
+                    <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-200">{label}</p>
+                    <p className="mt-2 text-lg font-black text-white">{value}</p>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="meter-line h-full rounded-full bg-gradient-to-r from-emerald-300 to-lime-200"
+                        style={{ animationDelay: `${index * 450}ms` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative hidden min-h-[360px] overflow-hidden rounded-[2rem] border border-lime-200/20 bg-[#061b10]/80 p-5 shadow-2xl shadow-black/35 backdrop-blur-2xl lg:block">
+              <video
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover opacity-85 brightness-90 saturate-150"
+                autoPlay
+                muted
+                loop
+                playsInline
+              >
+                <source src="/videos/dashboard-animation.mp4" type="video/mp4" />
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#020b05]/90 via-[#031108]/35 to-[#020b05]/20" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(190,242,100,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(190,242,100,0.06)_1px,transparent_1px)] bg-[size:34px_34px] opacity-50" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,197,94,0.10),transparent_52%)]" />
+
+              <div className="radar-ring absolute left-1/2 top-1/2 h-40 w-40 rounded-full border border-lime-200/45" />
+              <div className="radar-ring absolute left-1/2 top-1/2 h-56 w-56 rounded-full border border-emerald-200/35" style={{ animationDelay: "650ms" }} />
+              <div className="radar-ring absolute left-1/2 top-1/2 h-72 w-72 rounded-full border border-sky-200/20" style={{ animationDelay: "1300ms" }} />
+
+              <div className="drone-dot absolute left-[18%] top-[48%] z-10 flex h-12 w-12 items-center justify-center rounded-2xl border border-lime-200/40 bg-lime-300 text-emerald-950 shadow-2xl shadow-lime-300/30">
+                <ScanSearch className="h-6 w-6" />
+              </div>
+
+              <div className="absolute left-[12%] top-[58%] h-px w-[72%] -rotate-12 bg-gradient-to-r from-transparent via-lime-200/45 to-transparent" />
+              <div className="absolute left-[24%] top-[35%] h-px w-[52%] rotate-[18deg] bg-gradient-to-r from-transparent via-sky-200/35 to-transparent" />
+
+              <div className="absolute left-5 top-5 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl">
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-200">Signal</p>
+                <p className="mt-2 text-2xl font-black text-white">Live</p>
+              </div>
+
+              <div className="absolute bottom-5 left-5 right-5 grid grid-cols-3 gap-3">
+                {[
+                  ["NDVI", "Good"],
+                  ["Soil", "Moist"],
+                  ["Risk", "Low"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl border border-white/15 bg-black/25 p-3 text-center backdrop-blur-xl">
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-200">{label}</p>
+                    <p className="mt-1 text-sm font-black text-white">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <Link
-            href="/weather-alerts"
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
-          >
-            Weather Alerts
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
 
-        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {[
             {
               title: "AI Disease Scan",
               description: "Upload leaf images and get AI disease prediction with guidance.",
               icon: ScanSearch,
               href: "/disease-scan",
+              label: "Scan now",
             },
             {
               title: "Disease History",
               description: "View and manage saved disease scans.",
               icon: History,
               href: "/disease-history",
+              label: "View records",
             },
             {
               title: "Weather Alerts",
               description: "Get real-time farming weather alerts using your location.",
               icon: CloudSun,
               href: "/weather-alerts",
+              label: "Check weather",
             },
             {
               title: "24-hour Forecast",
               description: "See hourly forecast, rain risk, wind risk, and advisory.",
               icon: Wind,
               href: "/weather-alerts",
+              label: "Open forecast",
             },
-          ].map((card) => {
+          ].map((card, index) => {
             const Icon = card.icon;
 
             return (
-              <article key={card.title} className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                  <Icon className="h-6 w-6" />
+              <Link
+                key={card.title}
+                href={card.href}
+                className="feature-card group relative min-h-72 overflow-hidden rounded-[2rem] border border-white/18 bg-white/12 p-6 shadow-2xl shadow-black/25 backdrop-blur-2xl transition hover:-translate-y-2 hover:border-lime-200/40 hover:bg-white/18"
+                style={{ animationDelay: `${index * 250}ms` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/14 via-emerald-400/10 to-black/30" />
+                <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-lime-300/20 blur-2xl transition group-hover:scale-125" />
+                <div className="absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t from-emerald-950/70 to-transparent" />
+
+                <div className="relative z-10 flex h-full flex-col">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-lime-400 text-white shadow-xl shadow-emerald-700/30">
+                    <Icon className="h-7 w-7" />
+                  </div>
+
+                  <h2 className="mt-8 text-2xl font-black text-white">{card.title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-emerald-50/78">{card.description}</p>
+
+                  <div className="mt-auto flex items-center justify-between pt-8">
+                    <span className="text-sm font-black text-lime-200">{card.label}</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition group-hover:translate-x-1 group-hover:bg-lime-300 group-hover:text-emerald-950">
+                      <ArrowRight className="h-5 w-5" />
+                    </span>
+                  </div>
                 </div>
-                <h2 className="mt-5 text-lg font-semibold text-slate-900">{card.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
-                <Link href={card.href} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 transition hover:text-emerald-800">
-                  Open
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </article>
+              </Link>
             );
           })}
         </section>
@@ -252,26 +526,26 @@ export default function DashboardPage() {
         <section className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/disease-scan"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 via-green-500 to-lime-500 px-5 py-3 text-sm font-black text-white shadow-xl shadow-emerald-600/25 transition hover:scale-[1.02]"
           >
             Scan Disease
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="/disease-history"
-            className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/12 px-5 py-3 text-sm font-black text-white shadow-lg shadow-black/20 backdrop-blur-xl transition hover:bg-white/22"
           >
             View History
           </Link>
           <Link
             href="/weather-alerts"
-            className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/12 px-5 py-3 text-sm font-black text-white shadow-lg shadow-black/20 backdrop-blur-xl transition hover:bg-white/22"
           >
             Weather Alerts
           </Link>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-emerald-100 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
+        <section className="dashboard-panel mt-8 rounded-3xl border border-white/18 bg-white/88 p-6 shadow-2xl shadow-black/25">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">
@@ -336,7 +610,7 @@ export default function DashboardPage() {
         </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <article className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
+          <article className="dashboard-panel rounded-3xl border border-white/18 bg-white/88 p-6 shadow-2xl shadow-black/25">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Latest scan</p>
@@ -417,7 +691,7 @@ export default function DashboardPage() {
             )}
           </article>
 
-          <article className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
+          <article className="dashboard-panel rounded-3xl border border-white/18 bg-white/88 p-6 shadow-2xl shadow-black/25">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Weather summary</p>
@@ -442,7 +716,7 @@ export default function DashboardPage() {
               </div>
             ) : weatherData ? (
               <>
-                <div className="mt-6 rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-600 via-lime-500 to-emerald-900 p-5 text-white shadow-[0_30px_90px_-40px_rgba(5,150,105,0.55)]">
+                <div className="weather-pulse mt-6 rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-600 via-lime-500 to-emerald-900 p-5 text-white shadow-[0_30px_90px_-40px_rgba(5,150,105,0.55)]">
                   <p className="text-sm text-emerald-100">Current weather</p>
                   <p className="mt-2 text-2xl font-semibold">{formatWeatherValue(weatherData.weather.temperature, "°C")}</p>
                   <p className="mt-2 text-sm text-emerald-100">{weatherData.weather.condition}</p>
@@ -485,7 +759,9 @@ export default function DashboardPage() {
           </article>
         </section>
       </main>
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 }
