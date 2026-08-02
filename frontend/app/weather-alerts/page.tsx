@@ -9,10 +9,7 @@ import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
 import { api, type WeatherAlertsResponse, type WeatherForecastResponse } from "@/src/services/api";
 
-const DEFAULT_LATITUDE = 17.3850;
-const DEFAULT_LONGITUDE = 78.4867;
-
-type LocationMode = "default" | "current";
+type LocationMode = "saved" | "current";
 
 type Coordinates = {
   latitude: number;
@@ -78,17 +75,13 @@ export default function WeatherAlertsPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [forecastLoading, setForecastLoading] = useState(true);
   const [forecastErrorMessage, setForecastErrorMessage] = useState<string | null>(null);
-  const [locationMode, setLocationMode] = useState<LocationMode>("default");
+  const [locationMode, setLocationMode] = useState<LocationMode>("current");
   const [locationNotice, setLocationNotice] = useState<string | null>(null);
-  const [activeCoordinates, setActiveCoordinates] = useState<Coordinates>({
-    latitude: DEFAULT_LATITUDE,
-    longitude: DEFAULT_LONGITUDE,
-  });
   const isMountedRef = useRef(true);
   const subtitle =
-    locationMode === "current"
-      ? "Live weather conditions and farming advisories for your current location."
-      : "Live weather conditions and farming advisories for Hyderabad using the default field coordinates.";
+    locationMode === "saved"
+      ? "Live weather conditions and farming advisories for your saved farm location."
+      : "Live weather conditions and farming advisories for your current location.";
 
   async function loadWeatherData(coordinates: Coordinates, mode: LocationMode, notice: string | null = null) {
     if (!isMountedRef.current) {
@@ -136,48 +129,83 @@ export default function WeatherAlertsPage() {
   }
 
   async function handleUseMyLocation() {
+    setLocationNotice(null);
+    setErrorMessage(null);
+
     if (!navigator.geolocation) {
-      const notice = "Location access is unavailable in this browser. Showing Hyderabad default weather instead.";
-      setErrorMessage(notice);
-      await loadWeatherData({ latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE }, "default", notice);
+      setIsLoading(false);
+      setForecastLoading(false);
+      setErrorMessage(
+        "Location access is unavailable in this browser. Add a farm location or enable GPS to load real weather data.",
+      );
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage(null);
+    setForecastLoading(true);
 
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000,
+        });
       });
 
       await loadWeatherData(
-        { latitude: position.coords.latitude, longitude: position.coords.longitude },
+        {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        },
         "current",
         null,
       );
     } catch (error) {
-      const fallbackNotice =
-        error instanceof GeolocationPositionError && error.code === error.PERMISSION_DENIED
-          ? "Location permission was denied. Showing Hyderabad default weather instead."
-          : "Unable to detect your location right now. Showing Hyderabad default weather instead.";
+      setIsLoading(false);
+      setForecastLoading(false);
 
-      if (isMountedRef.current) {
-        setErrorMessage(fallbackNotice);
-      }
+      const message =
+        error instanceof GeolocationPositionError &&
+        error.code === error.PERMISSION_DENIED
+          ? "Location permission was denied. Allow GPS access or add your farm coordinates in Farm Setup."
+          : "Unable to detect your current location. Add your farm coordinates or try GPS again.";
 
-      await loadWeatherData({ latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE }, "default", fallbackNotice);
+      setErrorMessage(message);
     }
   }
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    async function loadWeatherAlerts() {
-      await loadWeatherData({ latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE }, "default", null);
+    async function loadRealWeatherLocation() {
+      try {
+        const cropsResponse = await api.getCrops();
+        const savedFarm = cropsResponse.data.find(
+          (crop) =>
+            Number.isFinite(crop.latitude) &&
+            Number.isFinite(crop.longitude),
+        );
+
+        if (savedFarm) {
+          await loadWeatherData(
+            {
+              latitude: savedFarm.latitude,
+              longitude: savedFarm.longitude,
+            },
+            "saved",
+            null,
+          );
+          return;
+        }
+      } catch {
+        // If no saved farm can be loaded, request the device's real location.
+      }
+
+      await handleUseMyLocation();
     }
 
-    void loadWeatherAlerts();
+    void loadRealWeatherLocation();
 
     return () => {
       isMountedRef.current = false;
@@ -228,7 +256,7 @@ export default function WeatherAlertsPage() {
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Weather and Advisory Summary</h2>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                  {locationMode === "current" ? "Your current location" : "Hyderabad default"}
+                  {locationMode === "saved" ? "Saved farm location" : "Your current location"}
                 </span>
                 <button
                   type="button"
