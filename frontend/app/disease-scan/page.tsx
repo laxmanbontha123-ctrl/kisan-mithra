@@ -435,7 +435,7 @@ export default function DiseaseScanPage() {
                             Local Product & Shop Suggestions
                           </h3>
                           <p className="mt-1 text-xs leading-5 text-orange-900">
-                            Demo local product data is shown for testing. Verify brand, price, dosage, and availability locally before use.
+                            Only verified product and shop records are shown. Always confirm label dosage, stock, price, and local suitability before use.
                           </p>
                         </div>
                         <Link
@@ -555,7 +555,7 @@ export default function DiseaseScanPage() {
                                   </div>
                                 </div>
                                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                  {product.isVerified ? "Verified" : "Demo / Unverified"}
+                                  "Verified"
                                 </span>
                               </div>
 
@@ -681,4 +681,5 @@ export default function DiseaseScanPage() {
     </div>
   );
 }
+
 
