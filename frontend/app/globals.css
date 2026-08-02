@@ -194,3 +194,14 @@ body {
     animation: none !important;
   }
 }
+
+/* Permanent farmer navigation sidebar on desktop */
+@media (min-width: 1024px) {
+  body:has(.km-desktop-sidebar) {
+    padding-left: 18rem;
+  }
+}
+
+body {
+  transition: padding-left 300ms ease;
+}
