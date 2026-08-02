@@ -56,47 +56,75 @@ export function Navbar() {
     router.push("/login");
   }
 
+  function isActiveLink(href: string) {
+    const cleanHref = href.split("#")[0];
+
+    if (href.includes("#")) {
+      return false;
+    }
+
+    return pathname === cleanHref;
+  }
+
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-white/90 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
+    <header className="sticky top-0 z-50 border-b border-white/15 bg-emerald-950/56 text-white shadow-2xl shadow-black/20 backdrop-blur-2xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5 lg:px-8">
+        <Link href="/home" className="group flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-lime-200/25 bg-gradient-to-br from-emerald-400 via-green-500 to-lime-500 text-white shadow-lg shadow-emerald-950/30 transition group-hover:scale-105">
             <Leaf className="h-5 w-5" />
           </div>
+
           <div>
-            <p className="text-lg font-semibold text-slate-900">Kisan Mithra</p>
-            <p className="text-sm text-slate-500">Smart farming platform</p>
+            <p className="text-lg font-black tracking-tight text-white">
+              Kisan Mithra
+            </p>
+            <p className="text-sm text-emerald-100/70">
+              Smart farming platform
+            </p>
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
-          {links.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="transition hover:text-emerald-600"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden items-center gap-1 text-sm font-semibold lg:flex">
+          {links.map((link) => {
+            const active = isActiveLink(link.href);
+
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={
+                  active
+                    ? "rounded-full border border-lime-200/25 bg-lime-300/15 px-3.5 py-2 text-lime-200 shadow-lg shadow-black/10 backdrop-blur-xl"
+                    : "rounded-full px-3.5 py-2 text-emerald-50/75 transition hover:bg-white/10 hover:text-white"
+                }
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {userName ? (
-            <div className="hidden items-center gap-3 sm:flex">
-              <span className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+            <div className="hidden items-center gap-2 sm:flex">
+              <span className="rounded-full border border-lime-200/20 bg-lime-300/12 px-4 py-2 text-sm font-bold text-lime-100 backdrop-blur-xl">
                 Hi, {userName.split(" ")[0]}
               </span>
+
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-full border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                className="rounded-full border border-red-200/25 bg-red-400/10 px-5 py-2.5 text-sm font-bold text-red-100 transition hover:bg-red-400/20"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <Button href="/login" variant="secondary" className="hidden sm:inline-flex">
+            <Button
+              href="/login"
+              variant="secondary"
+              className="hidden border-white/25 bg-white/10 text-white hover:bg-white/20 sm:inline-flex"
+            >
               Login
             </Button>
           )}
@@ -105,36 +133,49 @@ export function Navbar() {
             type="button"
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             onClick={() => setIsMenuOpen((current) => !current)}
-            className="rounded-full border border-emerald-200 p-2 text-slate-700 transition hover:bg-emerald-50 md:hidden"
+            className="rounded-full border border-white/20 bg-white/10 p-2.5 text-white transition hover:bg-white/20 lg:hidden"
           >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </button>
         </div>
       </div>
 
       {isMenuOpen ? (
-        <div className="border-t border-emerald-100 bg-white px-6 py-4 shadow-xl shadow-emerald-900/5 md:hidden">
+        <div className="border-t border-white/10 bg-emerald-950/72 px-6 py-4 shadow-2xl shadow-black/30 backdrop-blur-2xl lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-2">
-            {links.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const active = isActiveLink(link.href);
 
-            <div className="mt-3 border-t border-slate-100 pt-4">
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={
+                    active
+                      ? "rounded-2xl border border-lime-200/20 bg-lime-300/15 px-4 py-3 text-sm font-bold text-lime-100"
+                      : "rounded-2xl px-4 py-3 text-sm font-semibold text-emerald-50/80 transition hover:bg-white/10 hover:text-white"
+                  }
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+
+            <div className="mt-3 border-t border-white/10 pt-4">
               {userName ? (
                 <div className="space-y-3">
-                  <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                  <div className="rounded-2xl border border-lime-200/20 bg-lime-300/10 px-4 py-3 text-sm font-bold text-lime-100">
                     Hi, {userName.split(" ")[0]}
                   </div>
+
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full rounded-2xl border border-red-200 px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                    className="w-full rounded-2xl border border-red-200/25 bg-red-400/10 px-4 py-3 text-left text-sm font-bold text-red-100 transition hover:bg-red-400/20"
                   >
                     Logout
                   </button>
@@ -142,7 +183,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="block rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  className="block rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-500 px-4 py-3 text-center text-sm font-black text-white"
                 >
                   Login
                 </Link>
@@ -154,3 +195,4 @@ export function Navbar() {
     </header>
   );
 }
+

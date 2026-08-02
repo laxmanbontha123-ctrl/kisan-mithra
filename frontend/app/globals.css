@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
   --background: #ffffff;
@@ -24,3 +24,35 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Kisan Mithra global glass design system */
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  :where(
+    [class~="bg-white"],
+    [class~="bg-white/80"],
+    [class~="bg-white/85"],
+    [class~="bg-white/88"],
+    [class~="bg-white/90"],
+    [class~="bg-white/92"]
+  ) {
+    background-color: rgba(255, 255, 255, 0.60) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
+    backdrop-filter: blur(24px) saturate(165%);
+  }
+
+  :where(input, select, textarea) {
+    background-color: rgba(255, 255, 255, 0.74) !important;
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+}
+
+:where(input, select, textarea)::placeholder {
+  color: rgb(100 116 139 / 0.78);
+}
+
+::selection {
+  background: rgb(190 242 100 / 0.35);
+  color: #052e16;
+}
+
