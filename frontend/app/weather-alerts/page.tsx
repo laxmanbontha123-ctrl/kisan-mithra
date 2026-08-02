@@ -186,25 +186,42 @@ export default function WeatherAlertsPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_42%),linear-gradient(180deg,#f8fffb_0%,#eef7f2_100%)] text-slate-900">
-      <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
+    <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#020b05] text-slate-900">
+      <video
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 h-full w-full object-cover opacity-100 brightness-105 saturate-125"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      >
+        <source src="/videos/weather-alerts-background.mp4" type="video/mp4" />
+      </video>
+
+      <div className="pointer-events-none fixed inset-0 z-10 bg-[linear-gradient(135deg,rgba(2,11,5,0.22)_0%,rgba(4,47,24,0.08)_48%,rgba(2,11,5,0.28)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(14,165,233,0.12),transparent_32%),radial-gradient(circle_at_82%_20%,rgba(250,204,21,0.10),transparent_28%)]" />
+
+      <div className="relative z-30">
+        <Navbar />
+      </div>
+      <main className="relative z-20 mx-auto w-full max-w-7xl flex-1 px-6 py-12 lg:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Weather Intelligence</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Weather Alerts</h1>
-            <p className="mt-3 max-w-2xl text-slate-600">{subtitle}</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-5xl">Weather Alerts</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-white/90">{subtitle}</p>
           </div>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50"
+            className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-4 py-2 text-sm font-semibold text-white shadow-xl backdrop-blur-xl transition hover:bg-white/15"
           >
             <ArrowLeft className="h-4 w-4" />
             Back Home
           </Link>
         </div>
 
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-[0_20px_70px_-45px_rgba(15,23,42,0.45)]">
+        <section className="space-y-6 rounded-3xl border border-white/30 bg-white/90 p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Current Conditions</p>
@@ -264,7 +281,7 @@ export default function WeatherAlertsPage() {
                   <div className="mt-8 grid gap-4 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
                       <p className="text-sm text-emerald-100">Temperature</p>
-                      <p className="mt-1 text-xl font-semibold">{formatValue(weatherData.weather.temperature, "Â°C")}</p>
+                      <p className="mt-1 text-xl font-semibold">{formatValue(weatherData.weather.temperature, "°C")}</p>
                     </div>
                     <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
                       <p className="text-sm text-emerald-100">Humidity</p>
@@ -396,7 +413,7 @@ export default function WeatherAlertsPage() {
                           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                             <div className="rounded-xl bg-slate-50 px-3 py-2">
                               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Temp</p>
-                              <p className="mt-1 font-semibold text-slate-900">{formatValue(hour.temperature, "Â°C")}</p>
+                              <p className="mt-1 font-semibold text-slate-900">{formatValue(hour.temperature, "°C")}</p>
                             </div>
                             <div className="rounded-xl bg-slate-50 px-3 py-2">
                               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Humidity</p>
@@ -421,7 +438,9 @@ export default function WeatherAlertsPage() {
           ) : null}
         </section>
       </main>
-      <Footer />
+      <div className="relative z-20">
+        <Footer />
+      </div>
     </div>
   );
 }
