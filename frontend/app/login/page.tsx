@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
@@ -30,6 +30,7 @@ function formatPhoneForFirebase(phone: string): string {
 export default function LoginPage() {
   const router = useRouter();
 
+  const [fullName, setFullName] = useState("");
   const [mode, setMode] = useState<LoginMode>("phone");
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
@@ -112,7 +113,11 @@ export default function LoginPage() {
 
     try {
       if (mode === "email") {
-        const result = await api.verifyEmailOtp({ email: identifier, code: otp });
+        const result = await api.verifyEmailOtp({
+          fullName: fullName.trim().replace(/\s+/g, " "),
+          email: identifier,
+          code: otp,
+        });
         saveSession(result);
       } else {
         if (!confirmationResultRef.current) {
@@ -121,7 +126,10 @@ export default function LoginPage() {
 
         const firebaseResult = await confirmationResultRef.current.confirm(otp);
         const idToken = await firebaseResult.user.getIdToken();
-        const result = await api.loginWithFirebasePhone({ idToken });
+        const result = await api.loginWithFirebasePhone({
+          idToken,
+          fullName: fullName.trim().replace(/\s+/g, " "),
+        });
         saveSession(result);
       }
     } catch (err) {
@@ -375,6 +383,27 @@ export default function LoginPage() {
               </p>
             </div>
 
+            <div className="mb-6">
+              <label className="text-sm font-bold text-slate-700">
+                Farmer full name
+              </label>
+              <input
+                form="otp-login-form"
+                type="text"
+                required
+                minLength={2}
+                maxLength={80}
+                autoComplete="name"
+                value={fullName}
+                disabled={otpSent}
+                onChange={(event) => setFullName(event.target.value)}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:bg-slate-50 disabled:text-slate-500"
+                placeholder="Example: B. Laxman"
+              />
+              <p className="mt-2 text-xs font-medium text-slate-500">
+                This name will appear in your Kisan Mithra greeting and farmer profile.
+              </p>
+            </div>
             <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5 shadow-inner">
               <button
                 type="button"
@@ -401,7 +430,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <form onSubmit={otpSent ? handleVerifyOtp : handleRequestOtp} className="space-y-5">
+            <form id="otp-login-form" onSubmit={otpSent ? handleVerifyOtp : handleRequestOtp} className="space-y-5">
               <div>
                 <label className="text-sm font-bold text-slate-700">
                   {mode === "email" ? "Email address" : "Mobile number"}
@@ -482,3 +511,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

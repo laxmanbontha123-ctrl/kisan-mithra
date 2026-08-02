@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+﻿import bcrypt from 'bcrypt';
 import type { User } from '@prisma/client';
 import { signToken } from '../utils/jwt';
 import { prisma } from '../utils/prisma';
@@ -20,6 +20,7 @@ export interface RequestEmailOtpInput {
 }
 
 export interface VerifyEmailOtpInput {
+  fullName: string;
   email: string;
   code: string;
 }
@@ -29,7 +30,7 @@ export interface AuthService {
   verifyPhoneOtp: (input: VerifyPhoneOtpInput) => Promise<unknown>;
   requestEmailOtp: (input: RequestEmailOtpInput) => Promise<unknown>;
   verifyEmailOtp: (input: VerifyEmailOtpInput) => Promise<unknown>;
-  loginWithFirebasePhone: (idToken: string) => Promise<unknown>;
+  loginWithFirebasePhone: (idToken: string, fullName: string) => Promise<unknown>;
   getProfile: (userId: string) => Promise<unknown>;
 }
 
@@ -202,12 +203,14 @@ export class AuthServiceImpl implements AuthService {
       ? await prisma.user.update({
           where: { id: existingUser.id },
           data: {
+            fullName: input.fullName,
             emailVerified: true,
             lastLoginAt: new Date(),
           },
         })
       : await prisma.user.create({
           data: {
+            fullName: input.fullName,
             email: input.email,
             emailVerified: true,
             lastLoginAt: new Date(),
@@ -218,7 +221,7 @@ export class AuthServiceImpl implements AuthService {
   }
 
 
-  public async loginWithFirebasePhone(idToken: string): Promise<unknown> {
+  public async loginWithFirebasePhone(idToken: string, fullName: string): Promise<unknown> {
     const decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
     const firebasePhone = decodedToken.phone_number;
 
@@ -239,12 +242,14 @@ export class AuthServiceImpl implements AuthService {
       ? await prisma.user.update({
           where: { id: existingUser.id },
           data: {
+            fullName,
             phoneVerified: true,
             lastLoginAt: new Date(),
           },
         })
       : await prisma.user.create({
           data: {
+            fullName,
             phone,
             phoneVerified: true,
             lastLoginAt: new Date(),
@@ -280,3 +285,4 @@ export class AuthServiceImpl implements AuthService {
 
 export const authService = new AuthServiceImpl();
 export default authService;
+

@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+﻿import type { Request, Response } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { authService } from '../services/auth.service';
 
@@ -31,23 +31,25 @@ export const requestEmailOtp = async (req: Request, res: Response): Promise<void
 };
 
 export const verifyEmailOtp = async (req: Request, res: Response): Promise<void> => {
-  const { email, code } = req.body ?? {};
+  const { email, code, fullName } = req.body ?? {};
 
-  if (!isNonEmptyString(email) || !isNonEmptyString(code)) {
-    res.status(400).json({ success: false, message: 'email and code are required.' });
+  if (!isNonEmptyString(email) || !isNonEmptyString(code) || !isNonEmptyString(fullName)) {
+    res.status(400).json({ success: false, message: 'Full name, email, and code are required.' });
     return;
   }
 
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedCode = code.replace(/\D/g, '');
+  const normalizedFullName = fullName.trim().replace(/\s+/g, ' ');
 
-  if (!isValidEmail(normalizedEmail) || normalizedCode.length !== 6) {
-    res.status(400).json({ success: false, message: 'Valid email and 6-digit OTP are required.' });
+  if (!isValidEmail(normalizedEmail) || normalizedCode.length !== 6 || normalizedFullName.length < 2 || normalizedFullName.length > 80) {
+    res.status(400).json({ success: false, message: 'Valid full name, email, and 6-digit OTP are required.' });
     return;
   }
 
   try {
     const result = await authService.verifyEmailOtp({
+      fullName: normalizedFullName,
       email: normalizedEmail,
       code: normalizedCode,
     });
@@ -116,15 +118,22 @@ export const verifyPhoneOtp = async (req: Request, res: Response): Promise<void>
 
 
 export const loginWithFirebasePhone = async (req: Request, res: Response): Promise<void> => {
-  const { idToken } = req.body ?? {};
+  const { idToken, fullName } = req.body ?? {};
 
-  if (!isNonEmptyString(idToken)) {
-    res.status(400).json({ success: false, message: 'Firebase idToken is required.' });
+  if (!isNonEmptyString(idToken) || !isNonEmptyString(fullName)) {
+    res.status(400).json({ success: false, message: 'Full name and Firebase idToken are required.' });
+    return;
+  }
+
+  const normalizedFullName = fullName.trim().replace(/\s+/g, ' ');
+
+  if (normalizedFullName.length < 2 || normalizedFullName.length > 80) {
+    res.status(400).json({ success: false, message: 'Full name must contain between 2 and 80 characters.' });
     return;
   }
 
   try {
-    const result = await authService.loginWithFirebasePhone(idToken);
+    const result = await authService.loginWithFirebasePhone(idToken, normalizedFullName);
     res.status(200).json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Firebase phone login failed.';
@@ -148,3 +157,4 @@ export const profile = async (req: AuthenticatedRequest, res: Response): Promise
 };
 
 export default { requestEmailOtp, verifyEmailOtp, requestPhoneOtp, verifyPhoneOtp, loginWithFirebasePhone, profile };
+

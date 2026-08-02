@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+﻿const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
 
 type DiseaseRecommendation = {
   crop: string;
@@ -328,7 +328,7 @@ export const api = {
     return parseJsonResponse<EmailOtpResponse>(response);
   },
 
-  verifyEmailOtp: async (input: { email: string; code: string }): Promise<AuthResponse> => {
+  verifyEmailOtp: async (input: { fullName: string; email: string; code: string }): Promise<AuthResponse> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/email/verify-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -358,7 +358,7 @@ export const api = {
     return parseJsonResponse<AuthResponse>(response);
   },
 
-  loginWithFirebasePhone: async (input: { idToken: string }): Promise<AuthResponse> => {
+  loginWithFirebasePhone: async (input: { idToken: string; fullName: string }): Promise<AuthResponse> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/firebase/phone-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -471,3 +471,4 @@ export const api = {
     );
   },
 };
+

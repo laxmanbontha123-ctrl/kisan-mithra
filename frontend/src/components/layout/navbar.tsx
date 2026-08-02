@@ -319,7 +319,7 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {userName ? (
               <span className="rounded-full border border-lime-200/20 bg-lime-300/12 px-4 py-2 text-sm font-bold text-lime-100">
-                Hi, {userName.split(" ")[0]}
+                Hi, {userName}
               </span>
             ) : (
               <Link
@@ -417,3 +417,4 @@ export function Navbar() {
     </>
   );
 }
+
