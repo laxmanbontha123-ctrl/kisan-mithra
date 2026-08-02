@@ -31,6 +31,29 @@ export type DiseaseDetectResponse = {
   aiResponse?: DiseasePrediction;
 };
 
+export type DiseaseScanHistoryItem = {
+  id: string;
+  prediction: string;
+  confidence: number;
+  crop: string | null;
+  disease: string | null;
+  severity: string | null;
+  summary: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+};
+
+export type DiseaseHistoryResponse = {
+  success: boolean;
+  scans: DiseaseScanHistoryItem[];
+  message?: string;
+};
+
+export type DeleteDiseaseHistoryResponse = {
+  success: boolean;
+  message?: string;
+};
+
 export type WeatherAlert = {
   type: "rain" | "wind" | "heat" | "disease-risk";
   severity: "high" | "medium";
@@ -416,6 +439,24 @@ export const api = {
     });
 
     return parseJsonResponse<DiseaseDetectResponse>(response);
+  },
+
+  getDiseaseHistory: async (): Promise<DiseaseHistoryResponse> => {
+    return api.get<DiseaseHistoryResponse>("/api/disease/history");
+  },
+
+  deleteDiseaseHistory: async (
+    scanId: string,
+  ): Promise<DeleteDiseaseHistoryResponse> => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/disease/history/${encodeURIComponent(scanId)}`,
+      {
+        method: "DELETE",
+        headers: getJsonHeaders(),
+      },
+    );
+
+    return parseJsonResponse<DeleteDiseaseHistoryResponse>(response);
   },
 
   getWeatherAlerts: async (lat: number, lon: number): Promise<WeatherAlertsResponse> => {

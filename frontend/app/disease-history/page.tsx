@@ -7,24 +7,7 @@ import { AlertCircle, ArrowLeft, CalendarClock, Leaf, LoaderCircle, Trash2 } fro
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
-
-type DiseaseScanHistoryItem = {
-  id: string;
-  prediction: string;
-  confidence: number;
-  crop: string | null;
-  disease: string | null;
-  severity: string | null;
-  summary: string | null;
-  imageUrl: string | null;
-  createdAt: string;
-};
-
-type DiseaseHistoryResponse = {
-  success: boolean;
-  scans?: DiseaseScanHistoryItem[];
-  message?: string;
-};
+import { api, type DiseaseScanHistoryItem } from "@/src/services/api";
 
 function formatConfidence(value: number): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -70,10 +53,9 @@ export default function DiseaseHistoryPage() {
         setIsLoading(true);
         setErrorMessage(null);
 
-        const response = await fetch("http://localhost:5000/api/disease/history");
-        const payload = (await response.json()) as DiseaseHistoryResponse;
+        const payload = await api.getDiseaseHistory();
 
-        if (!response.ok || !payload.success) {
+        if (!payload.success) {
           throw new Error(payload.message || "Failed to fetch disease scan history.");
         }
 
@@ -104,13 +86,9 @@ export default function DiseaseHistoryPage() {
       setDeletingId(scanId);
       setDeleteErrorMessage(null);
 
-      const response = await fetch(`http://localhost:5000/api/disease/history/${scanId}`, {
-        method: "DELETE",
-      });
+      const payload = await api.deleteDiseaseHistory(scanId);
 
-      const payload = (await response.json()) as { success: boolean; message?: string };
-
-      if (!response.ok || !payload.success) {
+      if (!payload.success) {
         throw new Error(payload.message || "Failed to delete scan history record.");
       }
 
