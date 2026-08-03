@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
@@ -6,6 +6,7 @@ import {
   RecaptchaVerifier,
   type ConfirmationResult,
   signInWithPhoneNumber,
+  signInWithCustomToken,
 } from "firebase/auth";
 
 import { api } from "@/src/services/api";
@@ -118,7 +119,16 @@ export default function LoginPage() {
           email: identifier,
           code: otp,
         });
-        saveSession(result);
+        const firebaseResult = await signInWithCustomToken(
+          firebaseAuth,
+          result.token,
+        );
+        const idToken = await firebaseResult.user.getIdToken();
+
+        saveSession({
+          ...result,
+          token: idToken,
+        });
       } else {
         if (!confirmationResultRef.current) {
           throw new Error("Please request phone OTP again.");
@@ -511,4 +521,3 @@ export default function LoginPage() {
     </main>
   );
 }
-
