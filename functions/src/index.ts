@@ -5,6 +5,9 @@ import {getAuth} from "firebase-admin/auth";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import {onRequest} from "firebase-functions/v2/https";
+import {registerDiseaseHistoryRoutes} from "./disease-history";
+import {registerWeatherRoutes} from "./weather";
+import {registerCropRoutes} from "./crops";
 import {
   registerEmailAuthRoutes,
   smtpPass,
@@ -42,6 +45,9 @@ app.get("/health", (_request: Request, response: Response) => {
 });
 
 registerEmailAuthRoutes(app, firestore, adminAuth);
+registerDiseaseHistoryRoutes(app, firestore, adminAuth);
+registerWeatherRoutes(app, adminAuth);
+registerCropRoutes(app, firestore, adminAuth);
 
 app.post(
   "/api/auth/firebase/phone-login",
