@@ -1,0 +1,15 @@
+specVersion: v1alpha1
+params: []
+requiredAPIs: []
+endpoints:
+  disease_ai:
+    entryPoint: disease_ai
+    region:
+      - asia-south1
+    platform: gcfv2
+    availableMemoryMb: 2048
+    maxInstances: 3
+    concurrency: 1
+    timeoutSeconds: 120
+    secretEnvironmentVariables: []
+    httpsTrigger: {}

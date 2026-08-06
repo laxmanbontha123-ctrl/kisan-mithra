@@ -1,4 +1,8 @@
-﻿const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+
+const DISEASE_AI_URL =
+  process.env.NEXT_PUBLIC_DISEASE_AI_URL ??
+  "https://asia-south1-kisan-mithra-59f69.cloudfunctions.net/disease_ai";
 
 type DiseaseRecommendation = {
   crop: string;
@@ -432,7 +436,7 @@ export const api = {
     const token = getAuthToken();
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
-    const response = await fetch(`${API_BASE_URL}/api/disease/detect`, {
+    const response = await fetch(DISEASE_AI_URL, {
       method: "POST",
       headers,
       body: formData,
@@ -471,4 +475,3 @@ export const api = {
     );
   },
 };
-

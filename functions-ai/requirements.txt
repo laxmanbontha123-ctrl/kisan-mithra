@@ -1,0 +1,6 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+firebase-functions
+firebase-admin
+Pillow
+torch==2.12.1+cpu
+torchvision==0.27.1+cpu
