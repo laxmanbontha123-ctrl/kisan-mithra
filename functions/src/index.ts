@@ -22,7 +22,28 @@ const app = express();
 const firestore = getFirestore();
 const adminAuth = getAuth();
 
-app.use(cors({origin: true}));
+const configuredAllowedOrigins =
+  process.env.CORS_ALLOWED_ORIGINS?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? [];
+
+const allowedOrigins = new Set([
+  "https://kisan-mithra-web--kisan-mithra-59f69.asia-southeast1.hosted.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  ...configuredAllowedOrigins,
+]);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Request origin is not allowed."));
+  },
+}));
 app.use(express.json({limit: "1mb"}));
 
 /**
