@@ -9,6 +9,7 @@ import {registerDiseaseHistoryRoutes} from "./disease-history";
 import {registerWeatherRoutes} from "./weather";
 import {registerCropRoutes} from "./crops";
 import {registerAgriResourceRoutes} from "./agri-resources";
+import {registerProfileManagementRoutes} from "./profile-management";
 import {
   registerEmailAuthRoutes,
   smtpPass,
@@ -50,6 +51,7 @@ registerDiseaseHistoryRoutes(app, firestore, adminAuth);
 registerWeatherRoutes(app, adminAuth);
 registerCropRoutes(app, firestore, adminAuth);
 registerAgriResourceRoutes(app, adminAuth);
+registerProfileManagementRoutes(app, firestore, adminAuth);
 
 app.post(
   "/api/auth/firebase/phone-login",

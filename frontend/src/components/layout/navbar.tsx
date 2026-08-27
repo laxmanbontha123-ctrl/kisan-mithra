@@ -16,6 +16,7 @@ import {
   Menu,
   ScanSearch,
   Sprout,
+  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -43,6 +44,11 @@ const links: NavigationItem[] = [
     icon: LayoutDashboard,
   },
   {
+    label: "Profile",
+    description: "Account and preferences",
+    href: "/profile",
+    icon: UserRound,
+  },  {
     label: "Farm Setup",
     description: "Add crop and land",
     href: "/farm-setup",

@@ -111,6 +111,19 @@ export type AuthResponse = {
   user: AuthUser;
 };
 
+export type UpdateProfileInput = {
+  fullName: string;
+  language: "en" | "te";
+};
+
+export type AccountDeletionResponse = {
+  success: boolean;
+  message: string;
+  deletedRecords?: {
+    crops: number;
+    diseaseScans: number;
+  };
+};
 export type ProfileResponse = {
   success: boolean;
   user: AuthUser;
@@ -377,6 +390,27 @@ export const api = {
     return api.get<ProfileResponse>("/api/auth/profile");
   },
 
+  updateProfile: async (
+    input: UpdateProfileInput,
+  ): Promise<ProfileResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+      method: "PATCH",
+      headers: getJsonHeaders(),
+      body: JSON.stringify(input),
+    });
+
+    return parseJsonResponse<ProfileResponse>(response);
+  },
+
+  deleteAccount: async (): Promise<AccountDeletionResponse> => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/account`, {
+      method: "DELETE",
+      headers: getJsonHeaders(),
+      body: JSON.stringify({ confirmation: "DELETE" }),
+    });
+
+    return parseJsonResponse<AccountDeletionResponse>(response);
+  },
   getCrops: async (): Promise<CropsResponse> => {
     return api.get<CropsResponse>("/api/crops");
   },
