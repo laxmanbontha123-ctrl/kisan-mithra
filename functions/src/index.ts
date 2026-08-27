@@ -8,6 +8,7 @@ import {onRequest} from "firebase-functions/v2/https";
 import {registerDiseaseHistoryRoutes} from "./disease-history";
 import {registerWeatherRoutes} from "./weather";
 import {registerCropRoutes} from "./crops";
+import {registerAgriResourceRoutes} from "./agri-resources";
 import {
   registerEmailAuthRoutes,
   smtpPass,
@@ -48,6 +49,7 @@ registerEmailAuthRoutes(app, firestore, adminAuth);
 registerDiseaseHistoryRoutes(app, firestore, adminAuth);
 registerWeatherRoutes(app, adminAuth);
 registerCropRoutes(app, firestore, adminAuth);
+registerAgriResourceRoutes(app, adminAuth);
 
 app.post(
   "/api/auth/firebase/phone-login",

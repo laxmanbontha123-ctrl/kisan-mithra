@@ -39,6 +39,7 @@ export default function DiseaseScanPage() {
   const [nearbyShops, setNearbyShops] = useState<NearbyAgriShop[]>([]);
   const [nearbyShopsMessage, setNearbyShopsMessage] = useState("");
   const [nearbyShopsDisclaimer, setNearbyShopsDisclaimer] = useState("");
+  const [nearbyShopsMapsUrl, setNearbyShopsMapsUrl] = useState("");
   const [nearbyShopsLoading, setNearbyShopsLoading] = useState(false);
   const [nearbyShopsError, setNearbyShopsError] = useState<string | null>(null);
   const showLowConfidenceWarning =
@@ -68,6 +69,7 @@ export default function DiseaseScanPage() {
     setNearbyShops([]);
     setNearbyShopsMessage("");
     setNearbyShopsDisclaimer("");
+    setNearbyShopsMapsUrl("");
     setNearbyShopsError(null);
     setNearbyShopsLoading(false);
 
@@ -110,6 +112,7 @@ export default function DiseaseScanPage() {
     setNearbyShopsError(null);
     setNearbyShopsMessage("");
     setNearbyShopsDisclaimer("");
+    setNearbyShopsMapsUrl("");
 
     if (!navigator.geolocation) {
       setNearbyShopsError("Location access is not supported on this device.");
@@ -129,6 +132,7 @@ export default function DiseaseScanPage() {
           setNearbyShops(response.data);
           setNearbyShopsMessage(response.message);
           setNearbyShopsDisclaimer(response.disclaimer || "");
+          setNearbyShopsMapsUrl(response.mapsSearchUrl || "");
         } catch (error) {
           setNearbyShopsError(
             error instanceof Error ? error.message : "Unable to load nearby agri shops.",
@@ -483,6 +487,17 @@ export default function DiseaseScanPage() {
                           </div>
                         ) : null}
 
+                        {nearbyShopsMapsUrl ? (
+                          <a
+                            href={nearbyShopsMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-4 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50"
+                          >
+                            <Navigation className="h-4 w-4" />
+                            Open nearby shop search in Google Maps
+                          </a>
+                        ) : null}
                         {nearbyShops.length > 0 ? (
                           <div className="mt-3 space-y-3">
                             {nearbyShops.map((shop) => (
@@ -634,7 +649,7 @@ export default function DiseaseScanPage() {
                         </div>
                       ) : (
                         <div className="mt-4 rounded-2xl border border-dashed border-orange-200 bg-white px-4 py-3 text-sm text-slate-600">
-                          No verified local products found yet for this crop and problem.
+                          {agriDisclaimer || "Verified product information is currently unavailable for this crop and problem."}
                         </div>
                       )}
                     </div>

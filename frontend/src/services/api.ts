@@ -233,6 +233,7 @@ export type NearbyAgriShopsResponse = {
   message: string;
   data: NearbyAgriShop[];
   disclaimer?: string;
+  mapsSearchUrl?: string;
 };
 
 
