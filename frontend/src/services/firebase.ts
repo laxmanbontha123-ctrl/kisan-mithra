@@ -11,7 +11,20 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const hasExplicitFirebaseConfig = [
+  firebaseConfig.apiKey,
+  firebaseConfig.authDomain,
+  firebaseConfig.projectId,
+  firebaseConfig.storageBucket,
+  firebaseConfig.messagingSenderId,
+  firebaseConfig.appId,
+].every((value) => typeof value === "string" && value.length > 0);
+
+const app = getApps().length ?
+  getApps()[0] :
+  hasExplicitFirebaseConfig ?
+    initializeApp(firebaseConfig) :
+    initializeApp();
 
 export const firebaseAuth = getAuth(app);
 firebaseAuth.languageCode = "en";

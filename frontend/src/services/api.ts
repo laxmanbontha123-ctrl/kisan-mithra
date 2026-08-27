@@ -1,4 +1,8 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  (process.env.NODE_ENV === "production" ?
+    "https://asia-south1-kisan-mithra-59f69.cloudfunctions.net/backend" :
+    "http://localhost:5000");
 
 const DISEASE_AI_URL =
   process.env.NEXT_PUBLIC_DISEASE_AI_URL ??
