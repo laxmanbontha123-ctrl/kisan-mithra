@@ -387,7 +387,7 @@ export default function DashboardPage() {
               <p className="mt-5 max-w-2xl text-base leading-8 text-emerald-50/82 sm:text-lg">
                 {profileLoading
                   ? "Loading your farmer profile..."
-                  : "Monitor crop health, weather risk, disease scans, and farm activity from one intelligent control dashboard."}
+                  : "Monitor farm records, local weather, saved disease scans, and available advisories from one dashboard."}
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -410,19 +410,13 @@ export default function DashboardPage() {
 
               <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
                 {[
-                  ["Crop Health", "92% stable"],
-                  ["Rain Risk", "24% today"],
-                  ["AI Status", "Live scan"],
-                ].map(([label, value], index) => (
+                  ["Farm", primaryFarm ? primaryFarm.cropName : "Not configured"],
+                  ["Weather", weatherLoading ? "Loading" : weatherData ? "Live data" : "Unavailable"],
+                  ["Disease history", historyLoading ? "Loading" : latestScan ? "Available" : "No scans yet"],
+                ].map(([label, value]) => (
                   <div key={label} className="rounded-2xl border border-white/14 bg-white/10 p-4 shadow-xl shadow-black/20 backdrop-blur-xl">
                     <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-200">{label}</p>
                     <p className="mt-2 text-lg font-black text-white">{value}</p>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                      <div
-                        className="meter-line h-full rounded-full bg-gradient-to-r from-emerald-300 to-lime-200"
-                        style={{ animationDelay: `${index * 450}ms` }}
-                      />
-                    </div>
                   </div>
                 ))}
               </div>
@@ -455,15 +449,15 @@ export default function DashboardPage() {
               <div className="absolute left-[24%] top-[35%] h-px w-[52%] rotate-[18deg] bg-gradient-to-r from-transparent via-sky-200/35 to-transparent" />
 
               <div className="absolute left-5 top-5 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl">
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-200">Signal</p>
-                <p className="mt-2 text-2xl font-black text-white">Live</p>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-200">Data policy</p>
+                <p className="mt-2 text-2xl font-black text-white">Source-based</p>
               </div>
 
               <div className="absolute bottom-5 left-5 right-5 grid grid-cols-3 gap-3">
                 {[
-                  ["NDVI", "Good"],
-                  ["Soil", "Moist"],
-                  ["Risk", "Low"],
+                  ["Satellite", "Unavailable"],
+                  ["Soil data", "Unavailable"],
+                  ["Risk score", "Unavailable"],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-2xl border border-white/15 bg-black/25 p-3 text-center backdrop-blur-xl">
                     <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-200">{label}</p>
@@ -493,7 +487,7 @@ export default function DashboardPage() {
             },
             {
               title: "Weather Alerts",
-              description: "Get real-time farming weather alerts using your location.",
+              description: "View current and forecast weather for your saved farm location.",
               icon: CloudSun,
               href: "/weather-alerts",
               label: "Check weather",
@@ -711,7 +705,9 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Weather summary</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Hyderabad field conditions</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                  {primaryFarm ? `${primaryFarm.location || "Your farm"} field conditions` : "Farm weather unavailable"}
+                </h2>
               </div>
               <CloudSun className="h-5 w-5 text-emerald-600" />
             </div>

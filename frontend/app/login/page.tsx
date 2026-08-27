@@ -349,20 +349,18 @@ export default function LoginPage() {
 
             <div className="glass-panel pointer-events-none absolute left-[6%] top-[13%] rounded-3xl border border-emerald-200/15 bg-white/10 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl">
               <p className="text-xs font-black uppercase tracking-[0.35em] text-emerald-200">
-                Crop AI
+                Disease scan
               </p>
-              <div className="mt-3 h-2 w-40 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-emerald-300 to-lime-200" />
-              </div>
-              <p className="mt-3 text-sm font-bold text-white/85">Scanning field health</p>
+              <p className="mt-3 text-lg font-black text-white">Photo-based guidance</p>
+              <p className="mt-1 text-sm font-semibold text-white/70">Available after login</p>
             </div>
 
             <div className="glass-panel pointer-events-none absolute bottom-[14%] left-[42%] rounded-3xl border border-lime-200/15 bg-white/10 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl" style={{ animationDelay: "900ms" }}>
               <p className="text-xs font-black uppercase tracking-[0.35em] text-lime-200">
                 Weather
               </p>
-              <p className="mt-3 text-3xl font-black text-white">Rain risk 24%</p>
-              <p className="mt-1 text-sm font-semibold text-white/70">Irrigation can wait</p>
+              <p className="mt-3 text-lg font-black text-white">Farm-location based</p>
+              <p className="mt-1 text-sm font-semibold text-white/70">Shown only when data is available</p>
             </div>
           </div>
 
