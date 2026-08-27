@@ -1,5 +1,5 @@
 import cors from "cors";
-import express, {Request, Response} from "express";
+import express, {NextFunction, Request, Response} from "express";
 import {initializeApp} from "firebase-admin/app";
 import {getAuth} from "firebase-admin/auth";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
@@ -19,6 +19,7 @@ import {
 initializeApp();
 
 const app = express();
+app.disable("x-powered-by");
 const firestore = getFirestore();
 const adminAuth = getAuth();
 
@@ -250,6 +251,25 @@ app.use((_request: Request, response: Response) => {
   });
 });
 
+app.use((
+  error: unknown,
+  _request: Request,
+  response: Response,
+  next: NextFunction,
+): void => {
+  if (
+    error instanceof Error &&
+    error.message === "Request origin is not allowed."
+  ) {
+    response.status(403).json({
+      success: false,
+      message: "Request origin is not allowed.",
+    });
+    return;
+  }
+
+  next(error);
+});
 export const backend = onRequest(
   {
     region: "asia-south1",
