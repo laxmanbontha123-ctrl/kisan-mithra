@@ -1,34 +1,13 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowRight, CalendarClock, CloudSun, History, LoaderCircle, ScanSearch, ShieldCheck, Sprout, Wind } from "lucide-react";
+import { AlertCircle, ArrowRight, CalendarClock, CloudSun, History, LoaderCircle, ScanSearch, ShieldCheck, Wind } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
 import { Navbar } from "@/src/components/layout/navbar";
-import { api, type AuthUser, type Crop, type WeatherAlertsResponse } from "@/src/services/api";
-
-type DiseaseScanHistoryItem = {
-  id: string;
-  prediction: string;
-  confidence: number;
-  crop: string | null;
-  disease: string | null;
-  severity: string | null;
-  summary: string | null;
-  imageUrl: string | null;
-  createdAt: string;
-};
-
-type DiseaseHistoryResponse = {
-  success: boolean;
-  scans?: DiseaseScanHistoryItem[];
-  message?: string;
-};
-
-const DEFAULT_LATITUDE = 17.3850;
-const DEFAULT_LONGITUDE = 78.4867;
+import { api, type AuthUser, type Crop, type DiseaseScanHistoryItem, type WeatherAlertsResponse } from "@/src/services/api";
 
 function formatConfidence(value: number): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -63,7 +42,6 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<AuthUser | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  const [scans, setScans] = useState<DiseaseScanHistoryItem[]>([]);
   const [latestScan, setLatestScan] = useState<DiseaseScanHistoryItem | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
@@ -124,52 +102,90 @@ export default function DashboardPage() {
     async function loadDashboardData() {
       setHistoryLoading(true);
       setWeatherLoading(true);
+      setFarmLoading(true);
       setHistoryErrorMessage(null);
       setWeatherErrorMessage(null);
+      setFarmErrorMessage(null);
 
-      const historyPromise = fetch("http://localhost:5000/api/disease/history").then(async (response) => {
-        const payload = (await response.json()) as DiseaseHistoryResponse;
-
-        if (!response.ok || !payload.success) {
-          throw new Error(payload.message || "Failed to fetch disease scan history.");
-        }
-
-        return payload;
-      });
-
-      const weatherPromise = api.getWeatherAlerts(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
-
-      const [historyResult, weatherResult] = await Promise.allSettled([historyPromise, weatherPromise]);
+      const [historyResult, farmResult] = await Promise.allSettled([
+        api.getDiseaseHistory(),
+        api.getCrops(),
+      ]);
 
       if (!isMounted) {
         return;
       }
 
-      if (historyResult.status === "fulfilled") {
-        const historyScans = historyResult.value.scans ?? [];
-        setScans(historyScans);
-        setLatestScan(historyScans[0] ?? null);
+      if (historyResult.status === "fulfilled" && historyResult.value.success) {
+        setLatestScan(historyResult.value.scans[0] ?? null);
       } else {
+        const historyError =
+          historyResult.status === "rejected"
+            ? historyResult.reason
+            : new Error(historyResult.value.message || "Failed to fetch disease scan history.");
+
         setHistoryErrorMessage(
-          historyResult.reason instanceof Error ? historyResult.reason.message : "Failed to fetch disease scan history.",
+          historyError instanceof Error ? historyError.message : "Failed to fetch disease scan history.",
         );
       }
 
-      if (weatherResult.status === "fulfilled") {
-        if (!weatherResult.value.success) {
-          setWeatherErrorMessage("Failed to fetch weather alerts.");
-        } else {
-          setWeatherData(weatherResult.value);
-        }
+      let farmForWeather: Crop | null = null;
+
+      if (farmResult.status === "fulfilled" && farmResult.value.success) {
+        const records = farmResult.value.data;
+        setFarmRecords(records);
+        farmForWeather = records[0] ?? null;
       } else {
-        setWeatherErrorMessage(
-          weatherResult.reason instanceof Error ? weatherResult.reason.message : "Failed to fetch weather alerts.",
+        const farmError =
+          farmResult.status === "rejected"
+            ? farmResult.reason
+            : new Error(farmResult.value.message || "Unable to load farm details.");
+
+        setFarmErrorMessage(
+          farmError instanceof Error ? farmError.message : "Unable to load farm details.",
         );
       }
 
       setHistoryLoading(false);
-      setWeatherLoading(false);
-      setLastUpdatedAt(new Date().toISOString());
+      setFarmLoading(false);
+
+      if (
+        !farmForWeather ||
+        !Number.isFinite(farmForWeather.latitude) ||
+        !Number.isFinite(farmForWeather.longitude)
+      ) {
+        setWeatherErrorMessage("Add a farm with a valid location to view local weather alerts.");
+        setWeatherLoading(false);
+        return;
+      }
+
+      try {
+        const weatherResult = await api.getWeatherAlerts(
+          farmForWeather.latitude,
+          farmForWeather.longitude,
+        );
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (!weatherResult.success) {
+          setWeatherErrorMessage("Weather data is currently unavailable for your farm.");
+        } else {
+          setWeatherData(weatherResult);
+          setLastUpdatedAt(new Date().toISOString());
+        }
+      } catch (error) {
+        if (isMounted) {
+          setWeatherErrorMessage(
+            error instanceof Error ? error.message : "Failed to fetch weather alerts.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setWeatherLoading(false);
+        }
+      }
     }
 
     void loadDashboardData();

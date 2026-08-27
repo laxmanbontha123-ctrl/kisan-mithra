@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, LoaderCircle, MapPin, Navigation, ScanSearch, ShieldCheck, Info } from "lucide-react";
 
 import { Footer } from "@/src/components/layout/footer";
@@ -555,7 +554,7 @@ export default function DiseaseScanPage() {
                                   </div>
                                 </div>
                                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                  "Verified"
+                                  &quot;Verified&quot;
                                 </span>
                               </div>
 

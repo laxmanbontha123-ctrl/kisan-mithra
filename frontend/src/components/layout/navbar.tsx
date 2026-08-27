@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -103,21 +103,25 @@ export function Navbar() {
     ) ?? links[0];
 
   useEffect(() => {
-    setIsMenuOpen(false);
+    const syncTimer = window.setTimeout(() => {
+      setIsMenuOpen(false);
 
-    const storedUser = window.localStorage.getItem("user");
+      const storedUser = window.localStorage.getItem("user");
 
-    if (!storedUser) {
-      setUserName("");
-      return;
-    }
+      if (!storedUser) {
+        setUserName("");
+        return;
+      }
 
-    try {
-      const user = JSON.parse(storedUser) as StoredUser;
-      setUserName(user.fullName || user.email || "");
-    } catch {
-      setUserName("");
-    }
+      try {
+        const user = JSON.parse(storedUser) as StoredUser;
+        setUserName(user.fullName || user.email || "");
+      } catch {
+        setUserName("");
+      }
+    }, 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [pathname]);
 
   useEffect(() => {

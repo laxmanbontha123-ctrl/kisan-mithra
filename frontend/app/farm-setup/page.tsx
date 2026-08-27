@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,8 +34,6 @@ export default function FarmSetupPage() {
 
   async function loadCrops() {
     try {
-      setIsLoading(true);
-      setErrorMessage("");
       const result = await api.getCrops();
       setCrops(result.data);
     } catch (error) {
@@ -53,7 +51,11 @@ export default function FarmSetupPage() {
       return;
     }
 
-    void loadCrops();
+    const loadTimer = window.setTimeout(() => {
+      void loadCrops();
+    }, 0);
+
+    return () => window.clearTimeout(loadTimer);
   }, [router]);
 
   function updateField(field: keyof typeof initialForm, value: string) {
