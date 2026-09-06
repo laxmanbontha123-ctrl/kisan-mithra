@@ -487,6 +487,7 @@ export default function LoginPage() {
               ) : null}
 
               <button
+                key={otpSent ? "verify-otp" : "request-otp"}
                 id={!otpSent && mode === "phone" ? "kisan-mithra-phone-submit" : undefined}
                 type="submit"
                 disabled={isLoading}
