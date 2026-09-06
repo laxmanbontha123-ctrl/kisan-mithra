@@ -161,30 +161,108 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-emerald-950 via-emerald-900 to-slate-950">
-      <Navbar />
+    <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-emerald-950">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-emerald-950">
+        <style>{`
+          @keyframes profilePageDrift {
+            0%, 100% {
+              transform: scale(1.02) translate3d(0, 0, 0);
+            }
+            50% {
+              transform: scale(1.08) translate3d(-1.5%, -0.75%, 0);
+            }
+          }
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8 rounded-3xl border border-white/15 bg-white/10 p-6 text-white shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-lime-200">
+          @keyframes profilePageAura {
+            0%, 100% {
+              opacity: 0.35;
+              transform: translate3d(-8%, 0, 0) scale(0.95);
+            }
+            50% {
+              opacity: 0.7;
+              transform: translate3d(18%, -5%, 0) scale(1.15);
+            }
+          }
+
+          .profile-page-video {
+            animation: profilePageDrift 16s ease-in-out infinite;
+          }
+
+          .profile-page-aura {
+            animation: profilePageAura 10s ease-in-out infinite;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .profile-page-video {
+              display: none;
+            }
+
+            .profile-page-aura {
+              animation: none;
+            }
+          }
+        `}</style>
+
+        <video
+          className="profile-page-video h-full w-full object-cover object-[68%_center]"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <source
+            src="/videos/profile-identity-background.mp4"
+            type="video/mp4"
+          />
+        </video>
+
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,35,24,0.96)_0%,rgba(2,44,28,0.82)_38%,rgba(2,44,28,0.42)_72%,rgba(2,20,15,0.68)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/15 via-emerald-950/45 to-slate-950/95" />
+        <div className="profile-page-aura absolute left-[12%] top-[18%] h-80 w-80 rounded-full bg-lime-300/20 blur-[110px]" />
+      </div>
+
+      <div className="relative z-30">
+        <Navbar />
+      </div>
+
+      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+        <section className="relative mb-8 flex min-h-[320px] items-end overflow-hidden px-2 py-10 text-white sm:items-center sm:px-8">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-3 rounded-full border border-lime-200/25 bg-black/25 px-4 py-2 shadow-xl backdrop-blur-xl">
+              <UserRound className="h-4 w-4 text-lime-300" />
+              <span className="text-xs font-black uppercase tracking-[0.24em] text-lime-200">
                 Farmer profile
-              </p>
-              <h1 className="mt-3 text-3xl font-black sm:text-4xl">
-                Profile & Settings
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50/80">
-                Manage farmer-entered details, language preference,
-                and account privacy controls.
-              </p>
+              </span>
             </div>
 
-            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-lime-300 text-emerald-950 shadow-xl shadow-lime-300/20">
-              <UserRound className="h-8 w-8" />
+            <h1 className="mt-5 text-4xl font-black leading-tight drop-shadow-2xl sm:text-6xl">
+              Profile &amp; Settings
+            </h1>
+
+            <p className="mt-4 max-w-lg text-sm leading-7 text-emerald-50/90 drop-shadow-xl sm:text-base">
+              Manage your farmer-entered identity, preferred language,
+              account access, and privacy controls from one trusted place.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {[
+                "Farmer Entered",
+                "Privacy Controls",
+                "English / Telugu",
+              ].map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-white/20 bg-black/25 px-3 py-1.5 text-xs font-bold text-white/95 shadow-lg backdrop-blur-xl"
+                >
+                  {label}
+                </span>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {message ? (
           <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
@@ -210,7 +288,7 @@ export default function ProfilePage() {
           <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
             <form
               onSubmit={saveProfile}
-              className="rounded-3xl border border-white/20 bg-white/95 p-6 shadow-2xl shadow-black/20 sm:p-8"
+              className="rounded-3xl border border-white/40 bg-gradient-to-br from-white/90 to-emerald-50/80 p-6 shadow-2xl shadow-black/30 ring-1 ring-inset ring-white/20 backdrop-blur-xl sm:p-8"
             >
               <div className="flex items-start gap-3">
                 <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
@@ -332,7 +410,7 @@ export default function ProfilePage() {
             </form>
 
             <div className="space-y-6">
-              <section className="rounded-3xl border border-white/20 bg-white/95 p-6 shadow-2xl shadow-black/20">
+              <section className="rounded-3xl border border-white/40 bg-gradient-to-br from-white/90 to-emerald-50/80 p-6 shadow-2xl shadow-black/30 ring-1 ring-inset ring-white/20 backdrop-blur-xl">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-600" />
                   <div>
@@ -354,7 +432,7 @@ export default function ProfilePage() {
                 </Link>
               </section>
 
-              <section className="rounded-3xl border border-rose-200 bg-rose-50 p-6 shadow-2xl shadow-black/15">
+              <section className="rounded-3xl border border-rose-200/80 bg-gradient-to-br from-rose-50/95 to-rose-100/85 p-6 shadow-2xl shadow-black/25 ring-1 ring-inset ring-white/30 backdrop-blur-xl">
                 <div className="flex items-start gap-3">
                   <Trash2 className="mt-0.5 h-5 w-5 text-rose-600" />
                   <div>
