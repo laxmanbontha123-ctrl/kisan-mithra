@@ -60,6 +60,12 @@ export default function LoginPage() {
     router.push("/dashboard");
   }
 
+  function resetRecaptchaVerifier() {
+    const verifier = recaptchaVerifierRef.current;
+    recaptchaVerifierRef.current = null;
+    verifier?.clear();
+  }
+
   function getRecaptchaVerifier() {
     if (!recaptchaVerifierRef.current) {
       recaptchaVerifierRef.current = new RecaptchaVerifier(
@@ -76,6 +82,10 @@ export default function LoginPage() {
 
   async function handleRequestOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (mode === "phone") {
+      resetRecaptchaVerifier();
+    }
     setError("");
     setMessage("");
     setOtp("");
@@ -100,6 +110,10 @@ export default function LoginPage() {
         setMessage("OTP sent successfully to your mobile number.");
       }
     } catch (err) {
+      if (mode === "phone") {
+        resetRecaptchaVerifier();
+      }
+
       setError(err instanceof Error ? err.message : "Unable to send OTP.");
     } finally {
       setIsLoading(false);
