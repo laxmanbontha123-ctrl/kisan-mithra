@@ -106,6 +106,7 @@ export default function LoginPage() {
         );
 
         confirmationResultRef.current = confirmationResult;
+        resetRecaptchaVerifier();
         setOtpSent(true);
         setMessage("OTP sent successfully to your mobile number.");
       }
@@ -486,7 +487,7 @@ export default function LoginPage() {
               ) : null}
 
               <button
-                id="kisan-mithra-phone-submit"
+                id={!otpSent && mode === "phone" ? "kisan-mithra-phone-submit" : undefined}
                 type="submit"
                 disabled={isLoading}
                 className="shine-button w-full rounded-2xl bg-gradient-to-r from-emerald-600 via-green-500 to-lime-500 px-5 py-4 text-base font-black text-white shadow-xl shadow-emerald-600/25 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-70"
